@@ -1,6 +1,7 @@
 package ru.practicum.yandex.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,6 +26,7 @@ import java.util.List;
 import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
+@Slf4j
 @RequiredArgsConstructor
 public class StatController {
 
@@ -38,6 +40,7 @@ public class StatController {
     @ResponseStatus(CREATED)
     public EndpointHitDto methodHit(@RequestBody @Valid EndpointHitDto endpointHitDto) {
         EndpointHit endpointHit = endpointHitMapper.toModel(endpointHitDto);
+        log.info("StatController uri '{}', request body '{}'.", "/hit", endpointHitDto);
         return endpointHitMapper.toDto(statService.methodHit(endpointHit));
     }
 
@@ -49,7 +52,8 @@ public class StatController {
         LocalDateTime decodedStart = decodeLocalDateTime(start);
         LocalDateTime decodedEnd = decodeLocalDateTime(end);
         validateDates(decodedStart, decodedEnd);
-
+        log.info("StatController uri '{}', start = '{}', end = '{}', uris = '{}', unique = '{}'.", "/stats", start,
+                end, uris, unique);
         return viewStatsMapper.toDtoList(statService.viewStats(decodedStart, decodedEnd, uris, unique));
     }
 

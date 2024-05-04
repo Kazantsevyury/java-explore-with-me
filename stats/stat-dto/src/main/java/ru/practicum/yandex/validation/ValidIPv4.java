@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = IPv4Validator.class)
 public @interface ValidIPv4 {
 
-    String message() default "Неверный формат IP адреса.";
+    String message() default "Wrong IP format.";
 
     Class<?>[] groups() default {};
 

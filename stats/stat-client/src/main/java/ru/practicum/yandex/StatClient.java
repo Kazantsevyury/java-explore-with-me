@@ -1,6 +1,7 @@
 package ru.practicum.yandex;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import ru.practicum.yandex.dto.EndpointHitDto;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class StatClient {
 
@@ -19,6 +21,7 @@ public class StatClient {
 
     public EndpointHitDto methodHit(EndpointHitDto endpointHitDto) {
         String uri = "/hits";
+        log.info("StatClient request on uri '{}'. Body '{}'.", uri, endpointHitDto);
         return webClient
                 .post()
                 .uri(uri)
@@ -35,6 +38,7 @@ public class StatClient {
                 uris,
                 unique);
 
+        log.info("StatClient request on uri '{}'.", requestUrl);
         return webClient.get()
                 .uri(requestUrl)
                 .retrieve()

@@ -8,7 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
-public class WebClientConfig {
+public class WebConfig {
 
     @Value("${stat-server.url}")
     private String addressBaseUrl;
@@ -18,7 +18,7 @@ public class WebClientConfig {
         return WebClient.builder()
                 .baseUrl(addressBaseUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE,
-                               HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                        HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
 }
