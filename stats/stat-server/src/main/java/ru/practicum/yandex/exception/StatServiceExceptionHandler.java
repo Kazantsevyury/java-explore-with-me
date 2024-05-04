@@ -1,54 +1,47 @@
 package ru.practicum.yandex.exception;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.format.DateTimeParseException;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class StatServiceExceptionHandler {
 
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    public ResponseEntity<Object> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
-        return new ResponseEntity<>(e.getParameter() + ":" + e.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
+    public String handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        return e.getParameter() + ":" + e.getLocalizedMessage();
     }
 
-    @ExceptionHandler(InvalidIntervalException.class)
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    public ResponseEntity<Object> handleIncorrectDateIntervalException(InvalidIntervalException e) {
-        return new ResponseEntity<>(e.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
+    public String handleMethodArgumentTypeMismatchException(IncorrectDateIntervalException e) {
+        return e.getLocalizedMessage();
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    public ResponseEntity<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        return new ResponseEntity<>(e.getParameter() + " : " + e.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
+    public String handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        return e.getParameter() + " : " + e.getLocalizedMessage();
     }
 
-    @ExceptionHandler(DateTimeParseException.class)
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    public ResponseEntity<Object> handleDateTimeParseException(DateTimeParseException e) {
-        return new ResponseEntity<>(e.getParsedString() + " : " + e.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
+    public String handleDateTimeParseException(DateTimeParseException e) {
+        return e.getParsedString() + " : " + e.getLocalizedMessage();
     }
 
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ResponseBody
-    public ResponseEntity<Object> handleExceptions(Exception e) {
-        return new ResponseEntity<>(getStackTraceAsString(e), HttpStatus.INTERNAL_SERVER_ERROR);
+    public String handleExceptions(RuntimeException e) {
+        return getStackTraceAsString(e);
     }
 
     private String getStackTraceAsString(Exception e) {

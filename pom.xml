@@ -7,13 +7,13 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>2.7.5</version>
-		<relativePath/>
+		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
 	<name>Explore With Me</name>
 	<modules>
-		<module>ewm-service</module>
 		<module>stats</module>
+		<module>ewm-service</module>
 	</modules>
 
 	<groupId>ru.practicum</groupId>
@@ -24,49 +24,31 @@
 	<properties>
 		<java.version>11</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring-boot.version>2.7.5</spring-boot.version>
-		<lombok.version>1.18.22</lombok.version>
-		<checkstyle.version>3.1.2</checkstyle.version>
-		<spotbugs.version>4.7.0.0</spotbugs.version>
-		<jacoco.version>0.8.8</jacoco.version>
 	</properties>
 
 	<dependencies>
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>2.12.0</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-			<version>${spring-boot.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
-			<version>${spring-boot.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>${lombok.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
-			<version>${spring-boot.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-aop</artifactId>
-			<version>${spring-boot.version}</version>
-		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
-			<version>${spring-boot.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -85,7 +67,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-checkstyle-plugin</artifactId>
-					<version>${checkstyle.version}</version>
+					<version>3.1.2</version>
 					<configuration>
 						<configLocation>checkstyle.xml</configLocation>
 						<failOnViolation>true</failOnViolation>
@@ -111,7 +93,7 @@
 				<plugin>
 					<groupId>com.github.spotbugs</groupId>
 					<artifactId>spotbugs-maven-plugin</artifactId>
-					<version>${spotbugs.version}</version>
+					<version>4.7.0.0</version>
 					<configuration>
 						<effort>Max</effort>
 						<threshold>High</threshold>
@@ -127,7 +109,7 @@
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>${jacoco.version}</version>
+					<version>0.8.8</version>
 					<configuration>
 						<output>file</output>
 					</configuration>
@@ -203,12 +185,10 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-checkstyle-plugin</artifactId>
-						<version>${checkstyle.version}</version>
 					</plugin>
 					<plugin>
 						<groupId>com.github.spotbugs</groupId>
 						<artifactId>spotbugs-maven-plugin</artifactId>
-						<version>${spotbugs.version}</version>
 					</plugin>
 				</plugins>
 			</build>
@@ -217,7 +197,6 @@
 					<plugin>
 						<groupId>com.github.spotbugs</groupId>
 						<artifactId>spotbugs-maven-plugin</artifactId>
-						<version>${spotbugs.version}</version>
 					</plugin>
 				</plugins>
 			</reporting>
@@ -229,7 +208,6 @@
 					<plugin>
 						<groupId>org.jacoco</groupId>
 						<artifactId>jacoco-maven-plugin</artifactId>
-						<version>${jacoco.version}</version>
 					</plugin>
 				</plugins>
 			</build>

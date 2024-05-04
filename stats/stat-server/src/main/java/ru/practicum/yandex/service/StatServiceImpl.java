@@ -7,7 +7,6 @@ import ru.practicum.yandex.model.ViewStats;
 import ru.practicum.yandex.repository.StatRepository;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -18,28 +17,32 @@ public class StatServiceImpl implements StatService {
 
     @Override
     public EndpointHit methodHit(EndpointHit endpointHit) {
-        return statRepository.save(endpointHit);
+        EndpointHit savedHit = statRepository.save(endpointHit);
+        return savedHit;
     }
 
     @Override
-    public List<ViewStats> viewStats(LocalDateTime startDate, LocalDateTime endDate, List<String> uris, Boolean unique) {
-        uris = uris != null ? uris : Collections.emptyList();
+    public List<ViewStats> viewStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
         if (unique) {
-            return getStats(startDate, endDate, uris, true);
+            return getStatsFromUniqueIps(start, end, uris);
         } else {
-            return getStats(startDate, endDate, uris, false);
+            return getAllStats(start, end, uris);
         }
     }
 
-    private List<ViewStats> getStats(LocalDateTime startDate, LocalDateTime endDate, List<String> uris, boolean unique) {
-        if (unique) {
-            return uris.isEmpty() ?
-                    statRepository.findStatsWithUniqueIps(startDate, endDate) :
-                    statRepository.findStatsFromListWithUniqueIps(startDate, endDate, uris);
+    private List<ViewStats> getAllStats(LocalDateTime start, LocalDateTime end, List<String> uris) {
+        if (uris == null) {
+            return statRepository.findStats(start, end);
         } else {
-            return uris.isEmpty() ?
-                    statRepository.findStats(startDate, endDate) :
-                    statRepository.findStatsFromUrlList(startDate, endDate, uris);
+            return statRepository.findStatsFromUrlList(start, end, uris);
+        }
+    }
+
+    private List<ViewStats> getStatsFromUniqueIps(LocalDateTime start, LocalDateTime end, List<String> uris) {
+        if (uris == null) {
+            return statRepository.findStatsWithUniqueIps(start, end);
+        } else {
+            return statRepository.findStatsFromListWithUniqueIps(start, end, uris);
         }
     }
 }

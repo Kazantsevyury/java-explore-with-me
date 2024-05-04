@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.yandex.dto.EndpointHitDto;
 import ru.practicum.yandex.dto.ViewStatsDto;
-import ru.practicum.yandex.exception.InvalidIntervalException;
+import ru.practicum.yandex.exception.IncorrectDateIntervalException;
 import ru.practicum.yandex.mapper.EndpointHitMapper;
 import ru.practicum.yandex.mapper.ViewStatsMapper;
 import ru.practicum.yandex.model.EndpointHit;
@@ -37,25 +37,25 @@ public class StatController {
     @PostMapping("/hit")
     @ResponseStatus(CREATED)
     public EndpointHitDto methodHit(@RequestBody @Valid EndpointHitDto endpointHitDto) {
-        EndpointHit endpointHit = endpointHitMapper.toEndpointModel(endpointHitDto);
-        return endpointHitMapper.toEndpointDto(statService.methodHit(endpointHit));
+        EndpointHit endpointHit = endpointHitMapper.toModel(endpointHitDto);
+        return endpointHitMapper.toDto(statService.methodHit(endpointHit));
     }
 
     @GetMapping("/stats")
     public List<ViewStatsDto> viewStats(@RequestParam String start,
                                         @RequestParam String end,
+                                        @RequestParam(required = false) List<String> uris,
                                         @RequestParam(defaultValue = "false") Boolean unique) {
         LocalDateTime decodedStart = decodeLocalDateTime(start);
         LocalDateTime decodedEnd = decodeLocalDateTime(end);
         validateDates(decodedStart, decodedEnd);
 
-        return viewStatsMapper.toDtoList(statService.viewStats(decodedStart, decodedEnd, null, unique));
+        return viewStatsMapper.toDtoList(statService.viewStats(decodedStart, decodedEnd, uris, unique));
     }
-
 
     private void validateDates(LocalDateTime start, LocalDateTime end) {
         if (start.isAfter(end)) {
-            throw new InvalidIntervalException("Wrong date interval. End date should be after start date.");
+            throw new IncorrectDateIntervalException("Wrong date interval. End date should be after start date.");
         }
     }
 
