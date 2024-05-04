@@ -14,7 +14,9 @@ public class StatServiceLoggingAspect {
 
 
     @Pointcut("execution(* ru.practicum.yandex.service.*.*(..))")
-    public void serviceMethods() {}
+    public void serviceMethods() {
+
+    }
 
     @After("serviceMethods()")
     public void logServiceMethodCall(JoinPoint joinPoint) {

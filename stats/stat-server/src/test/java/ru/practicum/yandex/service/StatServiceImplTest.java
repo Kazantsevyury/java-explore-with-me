@@ -10,9 +10,7 @@ import ru.practicum.yandex.model.EndpointHit;
 import ru.practicum.yandex.model.ViewStats;
 import ru.practicum.yandex.repository.StatRepository;
 import static org.mockito.Mockito.times;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.verify;
-import static org.mockito.ArgumentMatchers.any;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
