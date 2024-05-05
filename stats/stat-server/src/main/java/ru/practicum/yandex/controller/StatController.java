@@ -23,12 +23,12 @@ import static org.springframework.http.HttpStatus.CREATED;
  * Контроллер для управления статистикой и регистрации хитов в приложении.
  */
 @RestController
-@RequiredArgsConstructor // Lombok аннотация для конструктора с обязательными полями
+@RequiredArgsConstructor
 public class StatController {
 
-    private final StatService statService; // Сервис для обработки статистики
-    private final EndpointHitMapper endpointHitMapper; // Маппер для преобразования DTO в модель и обратно
-    private final ViewStatsMapper viewStatsMapper; // Маппер для преобразования списка моделей в список DTO
+    private final StatService statService;
+    private final EndpointHitMapper endpointHitMapper;
+    private final ViewStatsMapper viewStatsMapper;
 
     /**
      * Регистрирует хит для указанного endpoint.
@@ -36,10 +36,10 @@ public class StatController {
      * @return DTO зарегистрированного хита.
      */
     @PostMapping("/hit")
-    @ResponseStatus(CREATED) // Отправка HTTP статуса 201 (Created)
+    @ResponseStatus(CREATED)
     public EndpointHitDto methodHit(@RequestBody @Valid EndpointHitDto endpointHitDto) {
-        EndpointHit endpointHit = endpointHitMapper.toModel(endpointHitDto); // Преобразование DTO в модель
-        return endpointHitMapper.toDto(statService.methodHit(endpointHit)); // Возврат преобразованного DTO после сохранения
+        EndpointHit endpointHit = endpointHitMapper.toModel(endpointHitDto);
+        return endpointHitMapper.toDto(statService.methodHit(endpointHit));
     }
 
     /**
@@ -55,10 +55,10 @@ public class StatController {
                                         @RequestParam String end,
                                         @RequestParam(required = false) List<String> uris,
                                         @RequestParam(defaultValue = "false") Boolean unique) {
-        LocalDateTime decodedStart = decodeLocalDateTime(start); // Декодирование и парсинг начальной даты
-        LocalDateTime decodedEnd = decodeLocalDateTime(end); // Декодирование и парсинг конечной даты
-        validateDates(decodedStart, decodedEnd); // Проверка корректности интервала дат
-        return viewStatsMapper.toDtoList(statService.viewStats(decodedStart, decodedEnd, uris, unique)); // Возврат списка DTO статистики
+        LocalDateTime decodedStart = decodeLocalDateTime(start);
+        LocalDateTime decodedEnd = decodeLocalDateTime(end);
+        validateDates(decodedStart, decodedEnd);
+        return viewStatsMapper.toDtoList(statService.viewStats(decodedStart, decodedEnd, uris, unique));
     }
 
     /**
@@ -69,7 +69,7 @@ public class StatController {
      */
     private void validateDates(LocalDateTime start, LocalDateTime end) {
         if (start.isAfter(end)) {
-            throw new IncorrectDateIntervalException("Wrong date interval. End date should be after start date.");
+            throw new IncorrectDateIntervalException("Неверный интервал дат. Дата окончания должна быть после даты начала.");
         }
     }
 
@@ -79,8 +79,8 @@ public class StatController {
      * @return Объект LocalDateTime.
      */
     private LocalDateTime decodeLocalDateTime(String encodedDateTime) {
-        String decodedDateTime = URLDecoder.decode(encodedDateTime, StandardCharsets.UTF_8); // Декодирование строки
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"); // Форматтер даты и времени
-        return LocalDateTime.parse(decodedDateTime, dateTimeFormatter); // Преобразование декодированной строки в LocalDateTime
+        String decodedDateTime = URLDecoder.decode(encodedDateTime, StandardCharsets.UTF_8);
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return LocalDateTime.parse(decodedDateTime, dateTimeFormatter);
     }
 }
