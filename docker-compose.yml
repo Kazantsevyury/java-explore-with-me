@@ -5,7 +5,7 @@ services:
     image: stats-image
     container_name: stats-server
     ports:
-      - "9091:9090"
+      - "9090:9090"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/stats_db
       - POSTGRES_DB=stats_db
