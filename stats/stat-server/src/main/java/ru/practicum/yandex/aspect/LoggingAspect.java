@@ -14,7 +14,9 @@ import org.springframework.stereotype.Component;
 public class LoggingAspect {
 
     @Pointcut("within(ru.practicum.yandex..*)")
-    public void applicationPackagePointcut() {}
+    public void applicationPackagePointcut() {
+
+    }
 
     @Before("applicationPackagePointcut()")
     public void logMethodCall(JoinPoint joinPoint) {
