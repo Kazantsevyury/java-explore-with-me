@@ -4,14 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * Представляет сущность хита эндпоинта, отслеживающую доступ к различным эндпоинтам в приложении.
+ * Каждый хит записывает приложение, конкретный URI, IP-адрес запросившего пользователя и временную метку доступа.
+ */
 @Entity
 @Table(name = "endpointhits")
 @Data
@@ -21,14 +20,17 @@ public class EndpointHit {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
-    String app;
+    @Column(nullable = false)
+    private String app;
 
-    String uri;
+    @Column(nullable = false)
+    private String uri;
 
-    String ip;
+    @Column(nullable = false)
+    private String ip;
 
-    @Column(name = "created")
-    LocalDateTime timestamp;
+    @Column(name = "created", nullable = false)
+    private LocalDateTime timestamp;
 }

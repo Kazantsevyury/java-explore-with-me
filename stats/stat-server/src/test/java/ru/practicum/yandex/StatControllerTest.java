@@ -73,7 +73,7 @@ class StatControllerTest {
 
         when(statService.viewStats(start, end, uris, unique))
                 .thenReturn(List.of(viewStats));
-        when(viewStatsMapper.toDtoList(List.of(viewStats)))
+        when(viewStatsMapper.toViewStatsDtoList(List.of(viewStats)))
                 .thenReturn(List.of(viewStatsDto));
 
         MultiValueMap<String, String> urisRequest = new LinkedMultiValueMap<>();
@@ -93,7 +93,7 @@ class StatControllerTest {
                 .andExpect(jsonPath("$.[0].hits", is(4)));
 
         verify(statService, times(1)).viewStats(start, end, uris, unique);
-        verify(viewStatsMapper, times(1)).toDtoList(List.of(viewStats));
+        verify(viewStatsMapper, times(1)).toViewStatsDtoList(List.of(viewStats));
     }
 
     @Test
@@ -108,7 +108,7 @@ class StatControllerTest {
 
         when(statService.viewStats(start, end, null, false))
                 .thenReturn(List.of(viewStats));
-        when(viewStatsMapper.toDtoList(List.of(viewStats)))
+        when(viewStatsMapper.toViewStatsDtoList(List.of(viewStats)))
                 .thenReturn(List.of(viewStatsDto));
 
         mvc.perform(get("/stats")
@@ -144,7 +144,7 @@ class StatControllerTest {
                         DateTimeParseException));
 
         verify(statService, never()).viewStats(any(), any(), any(), any());
-        verify(viewStatsMapper, never()).toDtoList(anyList());
+        verify(viewStatsMapper, never()).toViewStatsDtoList(anyList());
     }
 
     @Test
@@ -167,7 +167,7 @@ class StatControllerTest {
                         InvalidDateRangeException));
 
         verify(statService, never()).viewStats(start, end, null, null);
-        verify(viewStatsMapper, never()).toDtoList(anyList());
+        verify(viewStatsMapper, never()).toViewStatsDtoList(anyList());
     }
 
     @Test
@@ -181,9 +181,9 @@ class StatControllerTest {
 
         when(statService.methodHit(endpointHit))
                 .thenReturn(endpointHit);
-        when(endpointHitMapper.toModel(endpointHitDto))
+        when(endpointHitMapper.toEndpointModel(endpointHitDto))
                 .thenReturn(endpointHit);
-        when(endpointHitMapper.toDto(endpointHit))
+        when(endpointHitMapper.toEndpointDto(endpointHit))
                 .thenReturn(endpointHitDto);
 
         DateTimeFormatter pattern = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -199,8 +199,8 @@ class StatControllerTest {
                 .andExpect(jsonPath("$.timestamp", is(endpointHitDto.getTimestamp().format(pattern))));
 
         verify(statService, times(1)).methodHit(endpointHit);
-        verify(endpointHitMapper, times(1)).toModel(endpointHitDto);
-        verify(endpointHitMapper, times(1)).toDto(endpointHit);
+        verify(endpointHitMapper, times(1)).toEndpointModel(endpointHitDto);
+        verify(endpointHitMapper, times(1)).toEndpointDto(endpointHit);
     }
 
     @Test

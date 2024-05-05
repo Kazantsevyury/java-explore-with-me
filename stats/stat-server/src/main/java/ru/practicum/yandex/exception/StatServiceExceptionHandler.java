@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.time.format.DateTimeParseException;
 
 @RestControllerAdvice
@@ -53,10 +51,4 @@ public class StatServiceExceptionHandler {
         return "Произошла внутренняя ошибка сервера. Пожалуйста, обратитесь в службу поддержки.";
     }
 
-    private String getStackTraceAsString(Exception e) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        return sw.toString();
-    }
 }

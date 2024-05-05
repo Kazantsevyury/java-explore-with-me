@@ -38,8 +38,8 @@ public class StatController {
     @PostMapping("/hit")
     @ResponseStatus(CREATED)
     public EndpointHitDto methodHit(@RequestBody @Valid EndpointHitDto endpointHitDto) {
-        EndpointHit endpointHit = endpointHitMapper.toModel(endpointHitDto);
-        return endpointHitMapper.toDto(statService.methodHit(endpointHit));
+        EndpointHit endpointHit = endpointHitMapper.toEndpointModel(endpointHitDto);
+        return endpointHitMapper.toEndpointDto(statService.methodHit(endpointHit));
     }
 
     /**
@@ -58,7 +58,7 @@ public class StatController {
         LocalDateTime decodedStart = decodeLocalDateTime(start);
         LocalDateTime decodedEnd = decodeLocalDateTime(end);
         validateDates(decodedStart, decodedEnd);
-        return viewStatsMapper.toDtoList(statService.viewStats(decodedStart, decodedEnd, uris, unique));
+        return viewStatsMapper.toViewStatsDtoList(statService.viewStats(decodedStart, decodedEnd, uris, unique));
     }
 
     /**
