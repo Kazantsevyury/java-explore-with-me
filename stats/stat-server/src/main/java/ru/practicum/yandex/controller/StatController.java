@@ -8,6 +8,7 @@ import ru.practicum.yandex.exception.IncorrectDateIntervalException;
 import ru.practicum.yandex.mapper.EndpointHitMapper;
 import ru.practicum.yandex.mapper.ViewStatsMapper;
 import ru.practicum.yandex.service.StatService;
+import ru.practicum.yandex.model.EndpointHit;
 
 import javax.validation.Valid;
 import java.net.URLDecoder;
