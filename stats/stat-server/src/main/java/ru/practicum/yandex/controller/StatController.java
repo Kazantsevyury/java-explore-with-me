@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.yandex.dto.EndpointHitDto;
 import ru.practicum.yandex.dto.ViewStatsDto;
-import ru.practicum.yandex.exception.IncorrectDateIntervalException;
+import ru.practicum.yandex.exception.InvalidDateRangeException;
 import ru.practicum.yandex.mapper.EndpointHitMapper;
 import ru.practicum.yandex.mapper.ViewStatsMapper;
 import ru.practicum.yandex.model.EndpointHit;
@@ -65,11 +65,11 @@ public class StatController {
      * Проверяет, что начальная дата не позднее конечной даты.
      * @param start Начальная дата интервала.
      * @param end Конечная дата интервала.
-     * @throws IncorrectDateIntervalException если начальная дата позже конечной.
+     * @throws InvalidDateRangeException если начальная дата позже конечной.
      */
     private void validateDates(LocalDateTime start, LocalDateTime end) {
         if (start.isAfter(end)) {
-            throw new IncorrectDateIntervalException("Неверный интервал дат. Дата окончания должна быть после даты начала.");
+            throw new InvalidDateRangeException("Неверный интервал дат. Дата окончания должна быть после даты начала.");
         }
     }
 

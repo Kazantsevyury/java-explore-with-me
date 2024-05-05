@@ -15,7 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import ru.practicum.yandex.controller.StatController;
 import ru.practicum.yandex.dto.EndpointHitDto;
 import ru.practicum.yandex.dto.ViewStatsDto;
-import ru.practicum.yandex.exception.IncorrectDateIntervalException;
+import ru.practicum.yandex.exception.InvalidDateRangeException;
 import ru.practicum.yandex.mapper.EndpointHitMapper;
 import ru.practicum.yandex.mapper.ViewStatsMapper;
 import ru.practicum.yandex.model.EndpointHit;
@@ -164,7 +164,7 @@ class StatControllerTest {
                         .param("end", "2020-11-03 11:54:22"))
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof
-                        IncorrectDateIntervalException));
+                        InvalidDateRangeException));
 
         verify(statService, never()).viewStats(start, end, null, null);
         verify(viewStatsMapper, never()).toDtoList(anyList());
