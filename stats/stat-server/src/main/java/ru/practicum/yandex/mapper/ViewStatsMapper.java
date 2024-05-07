@@ -8,10 +8,6 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface ViewStatsMapper {
-/*
-    ViewStatsDto toViewStatsModel(ViewStats viewStats);
 
-    ViewStats toViewStatsDto(ViewStatsDto viewStatsDto);
-*/
     List<ViewStatsDto> toViewStatsDtoList(List<ViewStats> viewStatsList);
 }

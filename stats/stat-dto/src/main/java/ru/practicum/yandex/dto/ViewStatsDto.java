@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ViewStatsDto {
 
-    String app;
+    private String app;
 
-    String uri;
+    private String uri;
 
-    Long hits;
+    private Long hits;
 }
