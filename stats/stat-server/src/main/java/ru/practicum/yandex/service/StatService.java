@@ -10,4 +10,6 @@ public interface StatService {
     EndpointHit methodHit(EndpointHit endpointHitDto);
 
     List<ViewStats> viewStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique);
+
+    ViewStats viewStatsForSingleUriWithUniqueIps(String uri);
 }

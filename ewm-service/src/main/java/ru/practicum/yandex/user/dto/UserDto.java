@@ -1,4 +1,4 @@
-package ru.practicum.yandex.model;
+package ru.practicum.yandex.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,14 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class ViewStats {
+public class UserDto {
 
-    private String app;
+    private Long id;
 
-    private String uri;
+    private String name;
 
-    private Long hits;
+    private String email;
 }

@@ -1,4 +1,4 @@
-package ru.practicum.yandex.model;
+package ru.practicum.yandex.user.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,28 +13,23 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "endpointhits")
+@Table(name = "users")
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
-@AllArgsConstructor(staticName = "of")
-@NoArgsConstructor
 @Builder
-public class EndpointHit {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String app;
+    @Column(name = "username")
+    private String name;
 
-    private String uri;
-
-    private String ip;
-
-    @Column(name = "created")
-    private LocalDateTime timestamp;
+    private String email;
 }

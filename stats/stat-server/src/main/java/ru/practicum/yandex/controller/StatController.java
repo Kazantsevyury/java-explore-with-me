@@ -1,13 +1,20 @@
 package ru.practicum.yandex.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.yandex.dto.EndpointHitDto;
 import ru.practicum.yandex.dto.ViewStatsDto;
-import ru.practicum.yandex.exception.InvalidDateRangeException;
+import ru.practicum.yandex.exception.IncorrectDateIntervalException;
 import ru.practicum.yandex.mapper.EndpointHitMapper;
 import ru.practicum.yandex.mapper.ViewStatsMapper;
 import ru.practicum.yandex.model.EndpointHit;
+import ru.practicum.yandex.model.ViewStats;
 import ru.practicum.yandex.service.StatService;
 
 import javax.validation.Valid;
@@ -19,37 +26,26 @@ import java.util.List;
 
 import static org.springframework.http.HttpStatus.CREATED;
 
-/**
- * Контроллер для управления статистикой и регистрации хитов в приложении.
- */
 @RestController
+@Slf4j
 @RequiredArgsConstructor
 public class StatController {
 
     private final StatService statService;
+
     private final EndpointHitMapper endpointHitMapper;
+
     private final ViewStatsMapper viewStatsMapper;
 
-    /**
-     * Регистрирует хит для указанного endpoint.
-     * @param endpointHitDto DTO хита для регистрации.
-     * @return DTO зарегистрированного хита.
-     */
     @PostMapping("/hit")
     @ResponseStatus(CREATED)
     public EndpointHitDto methodHit(@RequestBody @Valid EndpointHitDto endpointHitDto) {
-        EndpointHit endpointHit = endpointHitMapper.toEndpointModel(endpointHitDto);
-        return endpointHitMapper.toEndpointDto(statService.methodHit(endpointHit));
+        EndpointHit endpointHit = endpointHitMapper.toModel(endpointHitDto);
+        log.info("Adding method hit, request body '{}'.", endpointHitDto);
+        EndpointHit savedHit = statService.methodHit(endpointHit);
+        return endpointHitMapper.toDto(savedHit);
     }
 
-    /**
-     * Возвращает статистику просмотров для указанного временного интервала и списка URI.
-     * @param start Начало временного интервала.
-     * @param end Конец временного интервала.
-     * @param uris Список URI, по которым нужно собрать статистику (опционально).
-     * @param unique Если true, то возвращать только уникальные просмотры.
-     * @return Список DTO статистики просмотров.
-     */
     @GetMapping("/stats")
     public List<ViewStatsDto> viewStats(@RequestParam String start,
                                         @RequestParam String end,
@@ -58,29 +54,28 @@ public class StatController {
         LocalDateTime decodedStart = decodeLocalDateTime(start);
         LocalDateTime decodedEnd = decodeLocalDateTime(end);
         validateDates(decodedStart, decodedEnd);
-        return viewStatsMapper.toViewStatsDtoList(statService.viewStats(decodedStart, decodedEnd, uris, unique));
+        log.info("Requesting stats, start = '{}', end = '{}', uris = '{}', unique = '{}'.", start, end, uris, unique);
+        List<ViewStats> statsList = statService.viewStats(decodedStart, decodedEnd, uris, unique);
+        return viewStatsMapper.toDtoList(statsList);
     }
 
-    /**
-     * Проверяет, что начальная дата не позднее конечной даты.
-     * @param start Начальная дата интервала.
-     * @param end Конечная дата интервала.
-     * @throws InvalidDateRangeException если начальная дата позже конечной.
-     */
+    @GetMapping("/statistic")
+    public ViewStatsDto viewUniqueStatsForUri(@RequestParam String uri) {
+        log.info("Requesting stats for unique ips for uri '{}'.", uri);
+        ViewStats stats = statService.viewStatsForSingleUriWithUniqueIps(uri);
+        return viewStatsMapper.toDto(stats);
+    }
+
     private void validateDates(LocalDateTime start, LocalDateTime end) {
         if (start.isAfter(end)) {
-            throw new InvalidDateRangeException("Неверный интервал дат. Дата окончания должна быть после даты начала.");
+            throw new IncorrectDateIntervalException("Wrong date interval. End date should be after start date.");
         }
     }
 
-    /**
-     * Декодирует URL-кодированную строку даты и времени и преобразует ее в объект LocalDateTime.
-     * @param encodedDateTime URL-кодированная строка даты и времени.
-     * @return Объект LocalDateTime.
-     */
     private LocalDateTime decodeLocalDateTime(String encodedDateTime) {
         String decodedDateTime = URLDecoder.decode(encodedDateTime, StandardCharsets.UTF_8);
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        return LocalDateTime.parse(decodedDateTime, dateTimeFormatter);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return LocalDateTime.parse(decodedDateTime, formatter);
     }
+
 }

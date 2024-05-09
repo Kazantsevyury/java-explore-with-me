@@ -1,6 +1,7 @@
 package ru.practicum.yandex.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.yandex.model.EndpointHit;
 import ru.practicum.yandex.model.ViewStats;
@@ -11,25 +12,50 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class StatServiceImpl implements StatService {
 
     private final StatRepository statRepository;
 
     @Override
     public EndpointHit methodHit(EndpointHit endpointHit) {
-        return statRepository.save(endpointHit);
+        EndpointHit savedHit = statRepository.save(endpointHit);
+        log.info("Endpoint with id '{}' was registered.", savedHit.getId());
+        return savedHit;
     }
 
     @Override
     public List<ViewStats> viewStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
-        return unique ? collectUniqueVisitorStats(start, end, uris) : collectGeneralStats(start, end, uris);
+        if (unique) {
+            return getStatsFromUniqueIps(start, end, uris);
+        } else {
+            return getAllStats(start, end, uris);
+        }
     }
 
-    private List<ViewStats> collectGeneralStats(LocalDateTime start, LocalDateTime end, List<String> uris) {
-        return (uris == null) ? statRepository.findStats(start, end) : statRepository.findStatsFromUrlList(start, end, uris);
+    @Override
+    public ViewStats viewStatsForSingleUriWithUniqueIps(String uri) {
+        log.info("Requesting stats for unique ip for uri '{}.'", uri);
+        return statRepository.findStatsForUriWithUniqueIps(uri);
     }
 
-    private List<ViewStats> collectUniqueVisitorStats(LocalDateTime start, LocalDateTime end, List<String> uris) {
-        return (uris == null) ? statRepository.findStatsWithUniqueIps(start, end) : statRepository.findStatsFromListWithUniqueIps(start, end, uris);
+    private List<ViewStats> getAllStats(LocalDateTime start, LocalDateTime end, List<String> uris) {
+        if (uris == null) {
+            log.info("Requesting stats from unique ips between '{}' and '{}' from all uris.", start, end);
+            return statRepository.findStats(start, end);
+        } else {
+            log.info("Requesting stats from unique ips between '{}' and '{}' from uris '{}'.", start, end, uris);
+            return statRepository.findStatsFromUrlList(start, end, uris);
+        }
+    }
+
+    private List<ViewStats> getStatsFromUniqueIps(LocalDateTime start, LocalDateTime end, List<String> uris) {
+        if (uris == null) {
+            log.info("Requesting stats from unique ips between '{}' and '{}' from all uris.", start, end);
+            return statRepository.findStatsWithUniqueIps(start, end);
+        } else {
+            log.info("Requesting stats from unique ips between '{}' and '{}' from uris '{}'.", start, end, uris);
+            return statRepository.findStatsFromUriListWithUniqueIps(start, end, uris);
+        }
     }
 }
