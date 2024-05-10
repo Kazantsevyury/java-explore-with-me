@@ -77,38 +77,4 @@ public class EventSpecification {
         return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("participantLimit"),
                 root.get("numberOfParticipants"));
     }
-
-    public static Specification<Event> orderByNumberOfComments(Specification<Event> spec) {
-        return (root, query, criteriaBuilder) -> {
-            query.orderBy(
-                    criteriaBuilder.desc(
-                            criteriaBuilder.size(root.get("comments"))
-                    ));
-            return spec.toPredicate(root, query, criteriaBuilder);
-        };
-    }
-
-    public static Specification<Event> orderById(Specification<Event> spec) {
-        return (root, query, criteriaBuilder) -> {
-            query.orderBy(
-                    criteriaBuilder.asc(root.get("id")));
-            return spec.toPredicate(root, query, criteriaBuilder);
-        };
-    }
-
-    public static Specification<Event> orderByViews(Specification<Event> spec) {
-        return (root, query, criteriaBuilder) -> {
-            query.orderBy(
-                    criteriaBuilder.desc(root.get("views")));
-            return spec.toPredicate(root, query, criteriaBuilder);
-        };
-    }
-
-    public static Specification<Event> orderByEventDate(Specification<Event> spec) {
-        return (root, query, criteriaBuilder) -> {
-            query.orderBy(
-                    criteriaBuilder.desc(root.get("eventDate")));
-            return spec.toPredicate(root, query, criteriaBuilder);
-        };
-    }
 }

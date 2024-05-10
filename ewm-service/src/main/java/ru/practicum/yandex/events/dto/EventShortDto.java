@@ -9,7 +9,6 @@ import ru.practicum.yandex.category.dto.CategoryDto;
 import ru.practicum.yandex.user.dto.UserShortDto;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -35,6 +34,4 @@ public class EventShortDto {
     private long confirmedRequests;
 
     private long views;
-
-    private List<ShortCommentDto> comments;
 }

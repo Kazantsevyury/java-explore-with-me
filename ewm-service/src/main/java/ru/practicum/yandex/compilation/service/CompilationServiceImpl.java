@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.yandex.compilation.dto.NewCompilationDto;
 import ru.practicum.yandex.compilation.dto.UpdateCompilationRequest;
 import ru.practicum.yandex.compilation.model.Compilation;
@@ -29,14 +28,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     private final EventRepository eventRepository;
 
-    /**
-     * Add new event compilation. Compilation can have no events.
-     *
-     * @param newCompilationDto new compilation parameters
-     * @return added compilation
-     */
     @Override
-    @Transactional
     public Compilation addCompilation(NewCompilationDto newCompilationDto) {
         List<Long> compilationEventIds = newCompilationDto.getEvents();
         List<Event> compilationEvents = getCompilationEvents(newCompilationDto, compilationEventIds);
@@ -50,15 +42,7 @@ public class CompilationServiceImpl implements CompilationService {
         return savedCompilation;
     }
 
-    /**
-     * Update event compilation parameters.
-     *
-     * @param compId        compilation id to update
-     * @param updateRequest update parameters
-     * @return updated compilation
-     */
     @Override
-    @Transactional
     public Compilation updateCompilation(Long compId, UpdateCompilationRequest updateRequest) {
         Compilation compilation = getCompilationWithEvents(compId);
         updateCompilationIfNeeded(updateRequest, compilation);
@@ -67,27 +51,13 @@ public class CompilationServiceImpl implements CompilationService {
         return savedCompilation;
     }
 
-    /**
-     * Delete compilation by compilation id. If deleted successfully, returns 204 response status.
-     *
-     * @param compId compilation id to delete
-     */
     @Override
-    @Transactional
     public void deleteCompilation(Long compId) {
         getCompilation(compId);
         compilationRepository.deleteById(compId);
         log.info("Compilation with id '{}' was deleted.", compId);
     }
 
-    /**
-     * Find event compilations. If nothing was found according to search filter, returns empty list.
-     *
-     * @param pinned search only pinned event compilations
-     * @param from   first event compilation to display (not required, default value 0)
-     * @param size   number of event compilations to display (not required, default value 10)
-     * @return lists of event compilations
-     */
     @Override
     public List<Compilation> findCompilations(Boolean pinned, Long from, Integer size) {
         List<Specification<Compilation>> specifications = searchFilterToSpecificationList(pinned);
@@ -99,12 +69,6 @@ public class CompilationServiceImpl implements CompilationService {
         return compilations;
     }
 
-    /**
-     * Find event compilation by id. If nothing found, throws NotFoundException.
-     *
-     * @param compId event compilation id
-     * @return found compilation
-     */
     @Override
     public Compilation findCompilationById(Long compId) {
         Compilation compilation = getCompilationWithEvents(compId);

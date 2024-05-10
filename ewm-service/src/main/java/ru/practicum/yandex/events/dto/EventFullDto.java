@@ -11,7 +11,6 @@ import ru.practicum.yandex.events.model.EventState;
 import ru.practicum.yandex.user.dto.UserShortDto;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -54,6 +53,4 @@ public class EventFullDto {
     private LocalDateTime publishedOn;
 
     private LocationDto location;
-
-    List<CommentDto> comments;
 }

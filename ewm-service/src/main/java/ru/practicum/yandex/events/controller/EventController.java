@@ -22,14 +22,11 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Public (for all users) API for events
- */
 @RestController
 @RequestMapping("/events")
 @RequiredArgsConstructor
 @Slf4j
-public class EventPublicController {
+public class EventController {
 
     private static final String SERVICE_ID = "ewm-main-service";
 
@@ -39,16 +36,6 @@ public class EventPublicController {
 
     private final StatClient statClient;
 
-    /**
-     * Find event according to search filter. Only published events will be displayed. Information about this endpoint
-     * is saved to stats server.
-     *
-     * @param searchFilter search filter
-     * @param from         first element to display
-     * @param size         number of elements to display
-     * @param request      HttpServletRequest for request details
-     * @return list of events
-     */
     @GetMapping
     public List<EventShortDto> findEvents(EventSearchFilter searchFilter,
                                           @RequestParam(defaultValue = "0") Long from,
@@ -61,14 +48,6 @@ public class EventPublicController {
         return eventMapper.toShortDtoList(events);
     }
 
-    /**
-     * Get full event info by event id. Number of endpoint hits is requested from stats server and used for number of
-     * events views.
-     *
-     * @param id      event id
-     * @param request HttpServletRequest for request details. Information about this endpoint is saved to stats server.
-     * @return found event
-     */
     @GetMapping("/{id}")
     public EventFullDto getFullEventInfoById(@PathVariable Long id,
                                              HttpServletRequest request) {

@@ -15,7 +15,7 @@ public class WebConfig {
         return WebClient.builder()
                 .baseUrl(addressBaseUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE,
-                               HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                        HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
 }
