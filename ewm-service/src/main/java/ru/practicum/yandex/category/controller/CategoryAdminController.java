@@ -33,7 +33,7 @@ public class CategoryAdminController {
     @PostMapping
     @ResponseStatus(CREATED)
     public CategoryDto addCategory(@RequestBody @Valid CategoryDto categoryDto) {
-        log.info("Adding category '{}'.", categoryDto);
+        log.info("Добавление категории '{}'.", categoryDto);
         final Category category = categoryMapper.toModel(categoryDto);
         final Category addedCategory = categoryService.addCategory(category);
         return categoryMapper.toDto(addedCategory);
@@ -41,7 +41,7 @@ public class CategoryAdminController {
 
     @PatchMapping("/{catId}")
     public CategoryDto updateCategory(@PathVariable Long catId, @RequestBody @Valid CategoryDto updateCategoryDto) {
-        log.info("Updating category with id '{}', new name: '{}'.", catId, updateCategoryDto.getName());
+        log.info("Обновление категории с id '{}', новое название: '{}'.", catId, updateCategoryDto.getName());
         final Category updateCategory = categoryMapper.toModel(updateCategoryDto);
         final Category updatedCategory = categoryService.updateCategory(catId, updateCategory);
         return categoryMapper.toDto(updatedCategory);
@@ -50,7 +50,7 @@ public class CategoryAdminController {
     @DeleteMapping("/{catId}")
     @ResponseStatus(NO_CONTENT)
     public void removeCategory(@PathVariable Long catId) {
-        log.info("Deleting category with id '{}'.", catId);
+        log.info("Удаление категории с id '{}'.", catId);
         categoryService.removeCategoryById(catId);
     }
 }

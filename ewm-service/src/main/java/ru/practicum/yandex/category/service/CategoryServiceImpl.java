@@ -25,7 +25,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category addCategory(Category category) {
         final Category savedCategory = categoryRepository.save(category);
-        log.info("CategoryController, category with id '{}' was saved.", savedCategory.getId());
+        log.info("Категория с id '{}' была сохранена.", savedCategory.getId());
         return savedCategory;
     }
 
@@ -34,7 +34,7 @@ public class CategoryServiceImpl implements CategoryService {
         final Category foundCategory = getCategory(catId);
         foundCategory.setName(updateCategory.getName());
         final Category updatedCategory = categoryRepository.save(foundCategory);
-        log.info("CategoryController, update category with id '{}', new name: '{}'.", catId, updatedCategory.getName());
+        log.info("Обновлена категория с id '{}', новое название: '{}'.", catId, updatedCategory.getName());
         return updatedCategory;
     }
 
@@ -43,13 +43,13 @@ public class CategoryServiceImpl implements CategoryService {
         getCategory(catId);
         checkIfCategoryHaveAnyEvents(catId);
         categoryRepository.deleteById(catId);
-        log.info("CategoryController, deleted category with id '" + catId + "'.");
+        log.info("Удалена категория с id '" + catId + "'.");
     }
 
     private void checkIfCategoryHaveAnyEvents(Long catId) {
         long eventWithSameCategory = eventRepository.countEventsByCategoryId(catId);
         if (eventWithSameCategory > 0) {
-            throw new NotAuthorizedException("Category with id '" + catId + "' still have other event attached to it.");
+            throw new NotAuthorizedException("У категории с id '" + catId + "' еще есть связанные события.");
         }
     }
 
@@ -57,7 +57,7 @@ public class CategoryServiceImpl implements CategoryService {
     public List<Category> findCategories(Long from, Integer size) {
         OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
         Page<Category> categories = categoryRepository.findAll(pageRequest);
-        log.info("CategoryService find categories from '{}', size '{}'. Found categories: '{}'.", from, size,
+        log.info("Поиск категорий с позиции '{}', размер '{}'. Найдены категории: '{}'.", from, size,
                 categories.getSize());
         return categories.getContent();
     }
@@ -65,12 +65,12 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category findCategoryById(Long catId) {
         Category category = getCategory(catId);
-        log.info("CategoryService category found: " + category);
+        log.info("Найдена категория: " + category);
         return category;
     }
 
     private Category getCategory(Long catId) {
         return categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Category with id '" + catId + "' not found."));
+                .orElseThrow(() -> new NotFoundException("Категория с id '" + catId + "' не найдена."));
     }
 }

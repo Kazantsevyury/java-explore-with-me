@@ -31,14 +31,14 @@ public class CategoryPublicController {
     @GetMapping
     public List<CategoryDto> findCategories(@RequestParam(defaultValue = "0") @PositiveOrZero Long from,
                                             @RequestParam(defaultValue = "10") @Positive Integer size) {
-        log.info("Finding categories from = '{}', size = '{}'.", from, size);
+        log.info("Поиск категорий от = '{}', размер = '{}'.", from, size);
         List<Category> categories = categoryService.findCategories(from, size);
         return categoryMapper.toDtoList(categories);
     }
 
     @GetMapping("/{catId}")
     public CategoryDto findCategoryById(@PathVariable Long catId) {
-        log.info("Finding category by id '{}'.", catId);
+        log.info("Поиск категории по id '{}'.", catId);
         Category category = categoryService.findCategoryById(catId);
         return categoryMapper.toDto(category);
     }
