@@ -21,9 +21,7 @@ import ru.practicum.yandex.shared.exception.NotFoundException;
 import ru.practicum.yandex.user.dto.StateAction;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
