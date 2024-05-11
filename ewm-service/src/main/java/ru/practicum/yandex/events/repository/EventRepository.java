@@ -11,11 +11,18 @@ import java.util.Optional;
 
 public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecificationExecutor<Event> {
 
-    @Query("SELECT e FROM Event e JOIN FETCH e.category c JOIN FETCH e.initiator i WHERE i.id = ?1")
+    @Query("SELECT e FROM Event e " +
+            "JOIN FETCH e.category c " +
+            "JOIN FETCH e.initiator i " +
+            "WHERE i.id = ?1")
     List<Event> findEventsByUserId(Long userId, Pageable pageable);
 
-    @Query("SELECT e FROM Event e JOIN FETCH e.category c JOIN FETCH e.initiator i WHERE e.id = ?1")
+    @Query("SELECT e FROM Event e " +
+            "JOIN FETCH e.category c " +
+            "JOIN FETCH e.initiator i " +
+            "WHERE e.id = ?1")
     Optional<Event> findFullEventById(Long eventId);
 
     long countEventsByCategoryId(Long categoryId);
 }
+

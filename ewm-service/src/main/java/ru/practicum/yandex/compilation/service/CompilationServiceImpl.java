@@ -38,7 +38,7 @@ public class CompilationServiceImpl implements CompilationService {
                 .events(compilationEvents)
                 .build();
         Compilation savedCompilation = compilationRepository.save(compilation);
-        log.info("Compilation with id '{}' was saved.", savedCompilation.getId());
+        log.info("Подборка с id '{}' сохранена.", savedCompilation.getId());
         return savedCompilation;
     }
 
@@ -47,7 +47,7 @@ public class CompilationServiceImpl implements CompilationService {
         Compilation compilation = getCompilationWithEvents(compId);
         updateCompilationIfNeeded(updateRequest, compilation);
         Compilation savedCompilation = compilationRepository.save(compilation);
-        log.info("Compilation with id '{}' was updated.", compId);
+        log.info("Подборка с id '{}' обновлена.", compId);
         return savedCompilation;
     }
 
@@ -55,7 +55,7 @@ public class CompilationServiceImpl implements CompilationService {
     public void deleteCompilation(Long compId) {
         getCompilation(compId);
         compilationRepository.deleteById(compId);
-        log.info("Compilation with id '{}' was deleted.", compId);
+        log.info("Подборка с id '{}' удалена.", compId);
     }
 
     @Override
@@ -64,7 +64,7 @@ public class CompilationServiceImpl implements CompilationService {
         OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
         List<Compilation> compilations = compilationRepository
                 .findAll(specifications.stream().reduce(Specification::and).orElse(null), pageRequest).getContent();
-        log.info("Requesting compilations, search filter: pinned - '{}', from - '{}', size - '{}'. List size - '{}'.",
+        log.info("Запрос подборок, фильтр поиска: закреплено - '{}', начиная с - '{}', размер - '{}'. Количество подборок - '{}'.",
                 pinned, from, size, compilations.size());
         return compilations;
     }
@@ -72,7 +72,7 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     public Compilation findCompilationById(Long compId) {
         Compilation compilation = getCompilationWithEvents(compId);
-        log.info("Compilation with id '{}' was requested.", compId);
+        log.info("Запрошена подборка с id '{}'.", compId);
         return compilation;
     }
 
@@ -108,7 +108,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     private Compilation getCompilation(Long compId) {
         return compilationRepository.findById(compId)
-                .orElseThrow(() -> new NotFoundException("Compilation with id '" + compId + "' not found."));
+                .orElseThrow(() -> new NotFoundException("Подборка с id '" + compId + "' не найдена."));
     }
 
     private List<Event> getCompilationEvents(NewCompilationDto newCompilationDto, List<Long> compilationEventIds) {
@@ -123,6 +123,6 @@ public class CompilationServiceImpl implements CompilationService {
 
     private Compilation getCompilationWithEvents(Long compId) {
         return compilationRepository.findCompilationWithEventById(compId)
-                .orElseThrow(() -> new NotFoundException("Compilation with id '" + compId + "' not found."));
+                .orElseThrow(() -> new NotFoundException("Подборка с id '" + compId + "' не найдена."));
     }
 }

@@ -33,7 +33,7 @@ public class CompilationAdminController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CompilationDto addCompilation(@RequestBody @Valid NewCompilationDto newCompilationDto) {
-        log.info("Adding new compilation: '{}'.", newCompilationDto);
+        log.info("Добавление новой подборки: '{}'.", newCompilationDto);
         Compilation compilation = compilationService.addCompilation(newCompilationDto);
         return compilationMapper.toDto(compilation);
     }
@@ -41,7 +41,7 @@ public class CompilationAdminController {
     @PatchMapping("/{compId}")
     public CompilationDto updateCompilation(@PathVariable Long compId,
                                             @RequestBody @Valid UpdateCompilationRequest updateRequest) {
-        log.info("Updating compilation with id '{}.", compId);
+        log.info("Обновление подборки с идентификатором '{}'.", compId);
         Compilation compilation = compilationService.updateCompilation(compId, updateRequest);
         return compilationMapper.toDto(compilation);
     }
@@ -49,7 +49,7 @@ public class CompilationAdminController {
     @DeleteMapping("/{compId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCompilation(@PathVariable Long compId) {
-        log.info("Deleting compilation with id '{}'.", compId);
+        log.info("Удаление подборки с идентификатором '{}'.", compId);
         compilationService.deleteCompilation(compId);
     }
 }

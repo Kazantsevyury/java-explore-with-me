@@ -20,28 +20,28 @@ import java.time.LocalDateTime;
 @Builder
 public class EventUpdateRequest {
 
-    @Size(min = 20, max = 2000, message = "Annotation must not be blank or empty and contain between 20 and 2000 characters.")
+    @Size(min = 20, max = 2000, message = "Аннотация не должна быть пустой и должна содержать от 20 до 2000 символов.")
     private String annotation;
 
-    @Positive(message = "Category id must be positive.")
+    @Positive(message = "Идентификатор категории должен быть положительным.")
     @JsonAlias("category")
     private Long categoryId;
 
-    @Size(min = 20, max = 7000, message = "Description must not be blank or empty and contain between 20 and 7000 characters.")
+    @Size(min = 20, max = 7000, message = "Описание не должно быть пустым и должно содержать от 20 до 7000 символов.")
     private String description;
 
-    @ValidEventStart(message = "Date of event must be at least 2 hours later than current time.")
+    @ValidEventStart(message = "Дата мероприятия должна быть не менее чем через 2 часа от текущего времени.")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime eventDate;
 
-    @Size(min = 3, max = 120, message = "Title must not be blank or empty and contain between 3 and 120 characters.")
+    @Size(min = 3, max = 120, message = "Название не должно быть пустым и должно содержать от 3 до 120 символов.")
     private String title;
 
     private LocationDto location;
 
     private Boolean paid;
 
-    @PositiveOrZero(message = "Participant limit must be positive or zero.")
+    @PositiveOrZero(message = "Лимит участников должен быть нулевым или положительным.")
     private Integer participantLimit;
 
     private Boolean requestModeration;

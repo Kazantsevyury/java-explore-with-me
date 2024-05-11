@@ -41,7 +41,7 @@ public class EventController {
                                           @RequestParam(defaultValue = "0") Long from,
                                           @RequestParam(defaultValue = "10") Integer size,
                                           HttpServletRequest request) {
-        log.info("Requesting events, search filter: '{}'.", searchFilter);
+        log.info("Запрос мероприятий, фильтр поиска: '{}'.", searchFilter);
         validateDateRange(searchFilter);
         List<Event> events = eventService.findEvents(searchFilter, from, size);
         sendStatistics(request);
@@ -51,7 +51,7 @@ public class EventController {
     @GetMapping("/{id}")
     public EventFullDto getFullEventInfoById(@PathVariable Long id,
                                              HttpServletRequest request) {
-        log.info("Requesting full event info with id '{}'.", id);
+        log.info("Запрос полной информации о мероприятии с идентификатором '{}'.", id);
         sendStatistics(request);
         ViewStatsDto statistic = getStatisticsWithUniqueIp(request);
         Long hits = statistic.getHits();
@@ -76,7 +76,7 @@ public class EventController {
     private void validateDateRange(EventSearchFilter searchFilter) {
         if (searchFilter.getRangeStart() != null && searchFilter.getRangeEnd() != null) {
             if (searchFilter.getRangeStart().isAfter(searchFilter.getRangeEnd())) {
-                throw new IncorrectDateRangeException("Wrong date range.");
+                throw new IncorrectDateRangeException("Неверный диапазон дат.");
             }
         }
     }

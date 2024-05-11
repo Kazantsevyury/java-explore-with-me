@@ -28,14 +28,14 @@ public class CompilationController {
     public List<CompilationDto> findCompilations(@RequestParam(required = false) Boolean pinned,
                                                  @RequestParam(defaultValue = "0") Long from,
                                                  @RequestParam(defaultValue = "10") Integer size) {
-        log.info("Requesting compilations with params: pinned - '{}', from - '{}', size - '{}'.", pinned, from, size);
+        log.info("Получение подборок с параметрами: закрепленные - '{}', начиная с - '{}', размер - '{}'.", pinned, from, size);
         List<Compilation> compilations = compilationService.findCompilations(pinned, from, size);
         return compilationMapper.toDtoList(compilations);
     }
 
     @GetMapping("/{compId}")
     public CompilationDto findCompilationById(@PathVariable Long compId) {
-        log.info("Requesting compilation with id '{}'.", compId);
+        log.info("Запрос подборки по идентификатору '{}'.", compId);
         Compilation compilation = compilationService.findCompilationById(compId);
         return compilationMapper.toDto(compilation);
     }

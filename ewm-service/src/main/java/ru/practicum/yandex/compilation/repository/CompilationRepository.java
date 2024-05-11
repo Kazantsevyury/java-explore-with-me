@@ -9,6 +9,10 @@ import java.util.Optional;
 
 public interface CompilationRepository extends JpaRepository<Compilation, Long>, JpaSpecificationExecutor<Compilation> {
 
-    @Query("SELECT c FROM Compilation c LEFT JOIN FETCH c.events e LEFT JOIN FETCH e.category LEFT JOIN FETCH e.initiator WHERE c.id = ?1")
+    @Query("SELECT c FROM Compilation c " +
+            "LEFT JOIN FETCH c.events e " +
+            "LEFT JOIN FETCH e.category " +
+            "LEFT JOIN FETCH e.initiator " +
+            "WHERE c.id = ?1")
     Optional<Compilation> findCompilationWithEventById(Long compId);
 }

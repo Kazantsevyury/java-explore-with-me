@@ -33,7 +33,7 @@ public class EventAdminController {
     public List<EventFullDto> getFullEventsInfoByAdmin(EventAdminSearchFilter searchFilter,
                                                        @RequestParam(defaultValue = "0") Long from,
                                                        @RequestParam(defaultValue = "10") Integer size) {
-        log.info("Admin requesting full events info, search filter: '{}'.", searchFilter);
+        log.info("Администратор запрашивает полную информацию о мероприятиях, фильтр поиска: '{}'.", searchFilter);
         List<Event> events = eventService.getFullEventsInfoByAdmin(searchFilter, from, size);
         return eventMapper.toDtoList(events);
     }
@@ -41,7 +41,7 @@ public class EventAdminController {
     @PatchMapping("/{eventId}")
     public EventFullDto updateEventByAdmin(@PathVariable Long eventId,
                                            @RequestBody @Valid EventUpdateRequest updateRequest) {
-        log.info("Admin updating event with id '{}'.", eventId);
+        log.info("Администратор обновляет мероприятие с идентификатором '{}'.", eventId);
         Event event = eventService.updateEventByAdmin(eventId, updateRequest);
         return eventMapper.toDto(event);
     }
