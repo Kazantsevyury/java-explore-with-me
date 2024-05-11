@@ -14,21 +14,16 @@ import ru.practicum.yandex.events.mapper.EventMapper;
 import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.events.model.EventState;
 import ru.practicum.yandex.events.repository.EventRepository;
-import ru.practicum.yandex.events.repository.EventSpecification;
 import ru.practicum.yandex.shared.OffsetPageRequest;
 import ru.practicum.yandex.shared.exception.NotAuthorizedException;
 import ru.practicum.yandex.shared.exception.NotFoundException;
 import ru.practicum.yandex.user.dto.StateAction;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static ru.practicum.yandex.events.repository.EventSpecification.eventDateInRange;
-import static ru.practicum.yandex.events.repository.EventSpecification.eventStatusEquals;
-import static ru.practicum.yandex.events.repository.EventSpecification.isAvailable;
+import static ru.practicum.yandex.events.repository.EventSpecification.*;
 
 @Service
 @RequiredArgsConstructor
@@ -135,32 +130,44 @@ public class EventServiceImpl implements EventService {
     }
 
     private List<Specification<Event>> eventSearchFilterToSpecifications(EventSearchFilter searchFilter) {
-        return Stream.of(
-                        Optional.of(eventStatusEquals(EventState.PUBLISHED)),
-                        Optional.ofNullable(searchFilter.getText()).map(EventSpecification::textInAnnotationOrDescriptionIgnoreCase),
-                        Optional.ofNullable(searchFilter.getCategories()).map(EventSpecification::categoriesIdIn),
-                        Optional.ofNullable(searchFilter.getPaid()).map(EventSpecification::isPaid),
-                        Optional.ofNullable(searchFilter.getRangeStart()).flatMap(start -> Optional.ofNullable(searchFilter.getRangeEnd())
-                                .map(end -> eventDateInRange(start, end))),
-                        Optional.of(eventIsAvailable(searchFilter.isOnlyAvailable()))
-                ).flatMap(Optional::stream)
-                .collect(Collectors.toList());
+        List<Specification<Event>> specs = new ArrayList<>();
+        specs.add(eventStatusEquals(EventState.PUBLISHED));
+        if (searchFilter.getText() != null) {
+            specs.add(textInAnnotationOrDescriptionIgnoreCase(searchFilter.getText()));
+        }
+        if (searchFilter.getCategories() != null) {
+            specs.add(categoriesIdIn(searchFilter.getCategories()));
+        }
+        if (searchFilter.getPaid() != null) {
+            specs.add(isPaid(searchFilter.getPaid()));
+        }
+        if (searchFilter.getRangeStart() != null && searchFilter.getRangeEnd() != null) {
+            specs.add(eventDateInRange(searchFilter.getRangeStart(), searchFilter.getRangeEnd()));
+        }
+        if (searchFilter.isOnlyAvailable() != null) {
+            specs.add(isAvailable(searchFilter.isOnlyAvailable()));
+        }
+        return specs;
     }
 
     private List<Specification<Event>> eventAdminSearchFilterToSpecifications(EventAdminSearchFilter searchFilter) {
-        return Stream.of(
-                        Optional.ofNullable(searchFilter.getStates()).map(EventSpecification::eventStatusIn),
-                        Optional.ofNullable(searchFilter.getUsers()).map(EventSpecification::initiatorIdIn),
-                        Optional.ofNullable(searchFilter.getCategories()).map(EventSpecification::categoriesIdIn),
-                        Optional.ofNullable(searchFilter.getRangeStart()).flatMap(start -> Optional.ofNullable(searchFilter.getRangeEnd())
-                                .map(end -> eventDateInRange(start, end))),
-                        Optional.of(eventIsAvailable(searchFilter.isOnlyAvailable()))
-                ).flatMap(Optional::stream)
-                .collect(Collectors.toList());
-    }
-
-    private Specification<Event> eventIsAvailable(boolean isAvailable) {
-        return isAvailable ? isAvailable(isAvailable) : null;
+        List<Specification<Event>> specs = new ArrayList<>();
+        if (searchFilter.getStates() != null) {
+            specs.add(eventStatusIn(searchFilter.getStates()));
+        }
+        if (searchFilter.getUsers() != null) {
+            specs.add(initiatorIdIn(searchFilter.getUsers()));
+        }
+        if (searchFilter.getCategories() != null) {
+            specs.add(categoriesIdIn(searchFilter.getCategories()));
+        }
+        if (searchFilter.getRangeStart() != null && searchFilter.getRangeEnd() != null) {
+            specs.add(eventDateInRange(searchFilter.getRangeStart(), searchFilter.getRangeEnd()));
+        }
+        if (searchFilter.isOnlyAvailable() != null) {
+            specs.add(isAvailable(searchFilter.isOnlyAvailable()));
+        }
+        return specs;
     }
 
 }
