@@ -14,6 +14,7 @@ import ru.practicum.yandex.events.mapper.EventMapper;
 import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.events.model.EventState;
 import ru.practicum.yandex.events.repository.EventRepository;
+import ru.practicum.yandex.events.repository.EventSpecification;
 import ru.practicum.yandex.shared.OffsetPageRequest;
 import ru.practicum.yandex.shared.exception.NotAuthorizedException;
 import ru.practicum.yandex.shared.exception.NotFoundException;
@@ -23,16 +24,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static ru.practicum.yandex.events.repository.EventSpecification.categoriesIdIn;
 import static ru.practicum.yandex.events.repository.EventSpecification.eventDateInRange;
 import static ru.practicum.yandex.events.repository.EventSpecification.eventStatusEquals;
-import static ru.practicum.yandex.events.repository.EventSpecification.eventStatusIn;
-import static ru.practicum.yandex.events.repository.EventSpecification.initiatorIdIn;
 import static ru.practicum.yandex.events.repository.EventSpecification.isAvailable;
-import static ru.practicum.yandex.events.repository.EventSpecification.isPaid;
-import static ru.practicum.yandex.events.repository.EventSpecification.textInAnnotationOrDescriptionIgnoreCase;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +38,6 @@ import static ru.practicum.yandex.events.repository.EventSpecification.textInAnn
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
-
     private final EventMapper eventMapper;
 
     @Override
@@ -48,9 +45,8 @@ public class EventServiceImpl implements EventService {
         Sort sort = getSort(searchFilter.getSort());
         OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size, sort);
         List<Specification<Event>> specifications = eventSearchFilterToSpecifications(searchFilter);
-        List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null),
-                pageRequest).getContent();
-        log.info("Requesting events with filter '{}'. List size '{}.", searchFilter, events.size());
+        List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null), pageRequest).getContent();
+        log.info("Запрос мероприятий по фильтру '{}'. Количество найденных мероприятий '{}'.", searchFilter, events.size());
         return events;
     }
 
@@ -58,11 +54,11 @@ public class EventServiceImpl implements EventService {
     public Event getFullEventInfoById(Long id, Long views) {
         Event event = getEvent(id);
         if (!event.getState().equals(EventState.PUBLISHED)) {
-            throw new NotFoundException("Event with id '" + id + "' is not published. State: '" + event.getState() + "'");
+            throw new NotFoundException("Мероприятие с id '" + id + "' не опубликовано. Состояние: '" + event.getState() + "'");
         }
         event.setViews(views);
         eventRepository.save(event);
-        log.info("Requesting full event info with id '{}'.", id);
+        log.info("Запрос полной информации о мероприятии с id '{}'.", id);
         return event;
     }
 
@@ -70,9 +66,8 @@ public class EventServiceImpl implements EventService {
     public List<Event> getFullEventsInfoByAdmin(EventAdminSearchFilter searchFilter, Long from, Integer size) {
         OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
         List<Specification<Event>> specifications = eventAdminSearchFilterToSpecifications(searchFilter);
-        List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null),
-                pageRequest).getContent();
-        log.info("Requesting full events info by admin  with filter '{}'. List size '{}'.", searchFilter, events.size());
+        List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null), pageRequest).getContent();
+        log.info("Запрос полной информации о мероприятиях от администратора по фильтру '{}'. Количество '{}'.", searchFilter, events.size());
         return events;
     }
 
@@ -83,7 +78,7 @@ public class EventServiceImpl implements EventService {
         eventMapper.updateEvent(updateRequest, event);
         updateEventState(updateRequest.getStateAction(), event);
         Event savedEvent = eventRepository.save(event);
-        log.info("Event with id '{}' was updated by admin.", eventId);
+        log.info("Мероприятие с id '{}' обновлено администратором.", eventId);
         return savedEvent;
     }
 
@@ -107,19 +102,19 @@ public class EventServiceImpl implements EventService {
 
     private void checkIfEventIsCanceled(Event event) {
         if (event.getState().equals(EventState.CANCELED)) {
-            throw new NotAuthorizedException("Can not publish canceled event.");
+            throw new NotAuthorizedException("Опубликовать отменённое мероприятие нельзя.");
         }
     }
 
     private void checkIfEventIsAlreadyPublished(Event event) {
         if (event.getState().equals(EventState.PUBLISHED)) {
-            throw new NotAuthorizedException("Event is already published.");
+            throw new NotAuthorizedException("Мероприятие уже опубликовано.");
         }
     }
 
     private Event getEvent(Long id) {
         return eventRepository.findFullEventById(id)
-                .orElseThrow(() -> new NotFoundException("Event with id '" + id + "' was not found."));
+                .orElseThrow(() -> new NotFoundException("Мероприятие с id '" + id + "' не найдено."));
     }
 
     private Sort getSort(EventSort eventSort) {
@@ -136,29 +131,38 @@ public class EventServiceImpl implements EventService {
                 sort = Sort.by(Sort.Direction.DESC, "eventDate");
                 break;
             default:
-                throw new IllegalArgumentException("Sort '" + eventSort + "is not supported yet.");
+                throw new IllegalArgumentException("Сортировка '" + eventSort + "' пока не поддерживается.");
         }
         return sort;
     }
 
     private List<Specification<Event>> eventSearchFilterToSpecifications(EventSearchFilter searchFilter) {
-        List<Specification<Event>> resultSpecification = new ArrayList<>();
-        resultSpecification.add(eventStatusEquals(EventState.PUBLISHED));
-        resultSpecification.add(textInAnnotationOrDescriptionIgnoreCase(searchFilter.getText()));
-        resultSpecification.add(categoriesIdIn(searchFilter.getCategories()));
-        resultSpecification.add(isPaid(searchFilter.getPaid()));
-        resultSpecification.add(eventDateInRange(searchFilter.getRangeStart(), searchFilter.getRangeEnd()));
-        resultSpecification.add(isAvailable(searchFilter.isOnlyAvailable()));
-        return resultSpecification.stream().filter(Objects::nonNull).collect(Collectors.toList());
+        return Stream.of(
+                        Optional.of(eventStatusEquals(EventState.PUBLISHED)),
+                        Optional.ofNullable(searchFilter.getText()).map(EventSpecification::textInAnnotationOrDescriptionIgnoreCase),
+                        Optional.ofNullable(searchFilter.getCategories()).map(EventSpecification::categoriesIdIn),
+                        Optional.ofNullable(searchFilter.getPaid()).map(EventSpecification::isPaid),
+                        Optional.ofNullable(searchFilter.getRangeStart()).flatMap(start -> Optional.ofNullable(searchFilter.getRangeEnd())
+                                .map(end -> eventDateInRange(start, end))),
+                        Optional.of(eventIsAvailable(searchFilter.isOnlyAvailable()))
+                ).flatMap(Optional::stream)
+                .collect(Collectors.toList());
     }
 
     private List<Specification<Event>> eventAdminSearchFilterToSpecifications(EventAdminSearchFilter searchFilter) {
-        List<Specification<Event>> resultSpecification = new ArrayList<>();
-        resultSpecification.add(eventStatusIn(searchFilter.getStates()));
-        resultSpecification.add(initiatorIdIn(searchFilter.getUsers()));
-        resultSpecification.add(categoriesIdIn(searchFilter.getCategories()));
-        resultSpecification.add(eventDateInRange(searchFilter.getRangeStart(), searchFilter.getRangeEnd()));
-        resultSpecification.add(isAvailable(searchFilter.isOnlyAvailable()));
-        return resultSpecification.stream().filter(Objects::nonNull).collect(Collectors.toList());
+        return Stream.of(
+                        Optional.ofNullable(searchFilter.getStates()).map(EventSpecification::eventStatusIn),
+                        Optional.ofNullable(searchFilter.getUsers()).map(EventSpecification::initiatorIdIn),
+                        Optional.ofNullable(searchFilter.getCategories()).map(EventSpecification::categoriesIdIn),
+                        Optional.ofNullable(searchFilter.getRangeStart()).flatMap(start -> Optional.ofNullable(searchFilter.getRangeEnd())
+                                .map(end -> eventDateInRange(start, end))),
+                        Optional.of(eventIsAvailable(searchFilter.isOnlyAvailable()))
+                ).flatMap(Optional::stream)
+                .collect(Collectors.toList());
     }
+
+    private Specification<Event> eventIsAvailable(boolean isAvailable) {
+        return isAvailable ? isAvailable(isAvailable) : null;
+    }
+
 }
