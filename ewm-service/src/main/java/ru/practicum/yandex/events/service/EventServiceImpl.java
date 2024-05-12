@@ -50,7 +50,7 @@ public class EventServiceImpl implements EventService {
         List<Specification<Event>> specifications = eventSearchFilterToSpecifications(searchFilter);
         List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null),
                 pageRequest).getContent();
-        log.info("Requesting events with filter '{}'. List size '{}.", searchFilter, events.size());
+        log.info("Запрос событий с фильтром '{}'. Количество событий: '{}'.", searchFilter, events.size());
         return events;
     }
 
@@ -58,11 +58,11 @@ public class EventServiceImpl implements EventService {
     public Event getFullEventInfoById(Long id, Long views) {
         Event event = getEvent(id);
         if (!event.getState().equals(EventState.PUBLISHED)) {
-            throw new NotFoundException("Event with id '" + id + "' is not published. State: '" + event.getState() + "'");
+            throw new NotFoundException("Событие с id '" + id + "' не опубликовано. Статус: '" + event.getState() + "'");
         }
         event.setViews(views);
         eventRepository.save(event);
-        log.info("Requesting full event info with id '{}'.", id);
+        log.info("Получена полная информация о событии с id '{}'.", id);
         return event;
     }
 
@@ -72,7 +72,7 @@ public class EventServiceImpl implements EventService {
         List<Specification<Event>> specifications = eventAdminSearchFilterToSpecifications(searchFilter);
         List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null),
                 pageRequest).getContent();
-        log.info("Requesting full events info by admin  with filter '{}'. List size '{}'.", searchFilter, events.size());
+        log.info("Запрос полной информации о событиях администратором с фильтром '{}'. Количество событий: '{}'.", searchFilter, events.size());
         return events;
     }
 
@@ -83,7 +83,7 @@ public class EventServiceImpl implements EventService {
         eventMapper.updateEvent(updateRequest, event);
         updateEventState(updateRequest.getStateAction(), event);
         Event savedEvent = eventRepository.save(event);
-        log.info("Event with id '{}' was updated by admin.", eventId);
+        log.info("Событие с id '{}' обновлено администратором.", eventId);
         return savedEvent;
     }
 
