@@ -16,7 +16,6 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class StatClientImpl implements StatClient {
-
     private final WebClient webClient;
 
     @Override

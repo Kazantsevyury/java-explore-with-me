@@ -1,6 +1,5 @@
 package ru.practicum.yandex.events.repository;
 
-import lombok.experimental.UtilityClass;
 import org.springframework.data.jpa.domain.Specification;
 import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.events.model.EventState;
@@ -8,7 +7,6 @@ import ru.practicum.yandex.events.model.EventState;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@UtilityClass
 public class EventSpecification {
 
     public static Specification<Event> textInAnnotationOrDescriptionIgnoreCase(String text) {

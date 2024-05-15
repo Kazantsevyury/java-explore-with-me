@@ -17,9 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class CategoryServiceImpl implements CategoryService {
-
     private final CategoryRepository categoryRepository;
-
     private final EventRepository eventRepository;
 
     @Override

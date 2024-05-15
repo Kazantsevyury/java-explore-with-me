@@ -23,9 +23,7 @@ import java.util.List;
 @Validated
 @Slf4j
 public class CategoryPublicController {
-
     private final CategoryService categoryService;
-
     private final CategoryMapper categoryMapper;
 
     @GetMapping

@@ -23,9 +23,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class CompilationServiceImpl implements CompilationService {
-
     private final CompilationRepository compilationRepository;
-
     private final EventRepository eventRepository;
 
     @Override

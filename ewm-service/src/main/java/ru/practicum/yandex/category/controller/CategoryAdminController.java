@@ -25,9 +25,7 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 @RequiredArgsConstructor
 @Slf4j
 public class CategoryAdminController {
-
     private final CategoryService categoryService;
-
     private final CategoryMapper categoryMapper;
 
     @PostMapping

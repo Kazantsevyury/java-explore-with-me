@@ -19,9 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class CompilationController {
-
     private final CompilationService compilationService;
-
     private final CompilationMapper compilationMapper;
 
     @GetMapping

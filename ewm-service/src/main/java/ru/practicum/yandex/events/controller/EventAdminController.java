@@ -24,9 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class EventAdminController {
-
     private final EventService eventService;
-
     private final EventMapper eventMapper;
 
     @GetMapping

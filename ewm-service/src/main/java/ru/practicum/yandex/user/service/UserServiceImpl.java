@@ -41,19 +41,12 @@ import static ru.practicum.yandex.user.repository.UserSpecification.idIn;
 @RequiredArgsConstructor
 @Slf4j
 public class UserServiceImpl implements UserService {
-
     private final UserRepository userRepository;
-
     private final CategoryRepository categoryRepository;
-
     private final EventRepository eventRepository;
-
     private final LocationRepository locationRepository;
-
     private final ParticipationRequestRepository participationRequestRepository;
-
     private final EventMapper eventMapper;
-
     private final ParticipationMapper participationMapper;
 
     @Override

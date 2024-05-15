@@ -27,13 +27,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class EventController {
-
     private static final String SERVICE_ID = "ewm-main-service";
-
     private final EventService eventService;
-
     private final EventMapper eventMapper;
-
     private final StatClient statClient;
 
     @GetMapping

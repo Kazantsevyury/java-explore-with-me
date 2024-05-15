@@ -28,9 +28,7 @@ import java.util.List;
 @Validated
 @Slf4j
 public class UserAdminController {
-
     private final UserService userService;
-
     private final UserMapper userMapper;
 
     @PostMapping

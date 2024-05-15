@@ -38,9 +38,7 @@ import static ru.practicum.yandex.events.repository.EventSpecification.textInAnn
 @RequiredArgsConstructor
 @Slf4j
 public class EventServiceImpl implements EventService {
-
     private final EventRepository eventRepository;
-
     private final EventMapper eventMapper;
 
     @Override
