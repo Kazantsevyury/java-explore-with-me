@@ -1,4 +1,5 @@
-package ru.practicum.yandex.validation;
+package ru.practicum.yandex.user.validation;
+
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -8,13 +9,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+@Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
 @Documented
-@Constraint(validatedBy = IPv4Validator.class)
-public @interface ValidIPv4 {
+@Constraint(validatedBy = LocalDateTimeValidator.class)
+public @interface ValidEventStart {
 
-    String message() default "Wrong IP format.";
+    String message() default "Invalid event date.";
 
     Class<?>[] groups() default {};
 

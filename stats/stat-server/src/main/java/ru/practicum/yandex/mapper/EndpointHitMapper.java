@@ -8,7 +8,7 @@ import ru.practicum.yandex.model.EndpointHit;
 @Mapper(componentModel = "spring")
 public interface EndpointHitMapper {
 
-    EndpointHitDto toEndpointDto(EndpointHit endpointHit);
+    EndpointHitDto toDto(EndpointHit endpointHit);
 
-    EndpointHit toEndpointModel(EndpointHitDto endpointHitDto);
+    EndpointHit toModel(EndpointHitDto endpointHitDto);
 }
