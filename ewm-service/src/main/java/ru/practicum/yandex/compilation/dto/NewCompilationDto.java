@@ -19,7 +19,7 @@ public class NewCompilationDto {
 
     private boolean pinned;
 
-    @NotBlank(message = "Заголовок не может быть пустым и должен содержать от 1 до 50 символов.")
-    @Size(min = 1, max = 50, message = "Заголовок не может быть пустым и должен содержать от 1 до 50 символов.")
+    @NotBlank(message = "Title can not be blank and must contain between 1 and 50 characters.")
+    @Size(min = 1, max = 50, message = "Title can not be blank and must contain between 1 and 50 characters.")
     private String title;
 }

@@ -9,9 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class LocationDto {
+public class ShortCommentDto {
 
-    private Float lat;
-
-    private Float lon;
+    private String text;
 }

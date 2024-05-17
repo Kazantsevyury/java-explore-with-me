@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.yandex.compilation.dto.NewCompilationDto;
 import ru.practicum.yandex.compilation.dto.UpdateCompilationRequest;
 import ru.practicum.yandex.compilation.model.Compilation;
@@ -23,10 +24,19 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class CompilationServiceImpl implements CompilationService {
+
     private final CompilationRepository compilationRepository;
+
     private final EventRepository eventRepository;
 
+    /**
+     * Add new event compilation. Compilation can have no events.
+     *
+     * @param newCompilationDto new compilation parameters
+     * @return added compilation
+     */
     @Override
+    @Transactional
     public Compilation addCompilation(NewCompilationDto newCompilationDto) {
         List<Long> compilationEventIds = newCompilationDto.getEvents();
         List<Event> compilationEvents = getCompilationEvents(newCompilationDto, compilationEventIds);
@@ -36,41 +46,69 @@ public class CompilationServiceImpl implements CompilationService {
                 .events(compilationEvents)
                 .build();
         Compilation savedCompilation = compilationRepository.save(compilation);
-        log.info("Подборка с id '{}' сохранена.", savedCompilation.getId());
+        log.info("Compilation with id '{}' was saved.", savedCompilation.getId());
         return savedCompilation;
     }
 
+    /**
+     * Update event compilation parameters.
+     *
+     * @param compId        compilation id to update
+     * @param updateRequest update parameters
+     * @return updated compilation
+     */
     @Override
+    @Transactional
     public Compilation updateCompilation(Long compId, UpdateCompilationRequest updateRequest) {
         Compilation compilation = getCompilationWithEvents(compId);
         updateCompilationIfNeeded(updateRequest, compilation);
         Compilation savedCompilation = compilationRepository.save(compilation);
-        log.info("Подборка с id '{}' обновлена.", compId);
+        log.info("Compilation with id '{}' was updated.", compId);
         return savedCompilation;
     }
 
+    /**
+     * Delete compilation by compilation id. If deleted successfully, returns 204 response status.
+     *
+     * @param compId compilation id to delete
+     */
     @Override
+    @Transactional
     public void deleteCompilation(Long compId) {
         getCompilation(compId);
         compilationRepository.deleteById(compId);
-        log.info("Подборка с id '{}' удалена.", compId);
+        log.info("Compilation with id '{}' was deleted.", compId);
     }
 
+    /**
+     * Find event compilations. If nothing was found according to search filter, returns empty list.
+     *
+     * @param pinned search only pinned event compilations
+     * @param from   first event compilation to display (not required, default value 0)
+     * @param size   number of event compilations to display (not required, default value 10)
+     * @return lists of event compilations
+     */
     @Override
     public List<Compilation> findCompilations(Boolean pinned, Long from, Integer size) {
         List<Specification<Compilation>> specifications = searchFilterToSpecificationList(pinned);
         OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
         List<Compilation> compilations = compilationRepository
                 .findAll(specifications.stream().reduce(Specification::and).orElse(null), pageRequest).getContent();
-        log.info("Запрос подборок, фильтр поиска: закреплено - '{}', начиная с - '{}', размер - '{}'. Количество подборок - '{}'.",
+        log.info("Requesting compilations, search filter: pinned - '{}', from - '{}', size - '{}'. List size - '{}'.",
                 pinned, from, size, compilations.size());
         return compilations;
     }
 
+    /**
+     * Find event compilation by id. If nothing found, throws NotFoundException.
+     *
+     * @param compId event compilation id
+     * @return found compilation
+     */
     @Override
     public Compilation findCompilationById(Long compId) {
         Compilation compilation = getCompilationWithEvents(compId);
-        log.info("Запрошена подборка с id '{}'.", compId);
+        log.info("Compilation with id '{}' was requested.", compId);
         return compilation;
     }
 
@@ -106,7 +144,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     private Compilation getCompilation(Long compId) {
         return compilationRepository.findById(compId)
-                .orElseThrow(() -> new NotFoundException("Подборка с id '" + compId + "' не найдена."));
+                .orElseThrow(() -> new NotFoundException("Compilation with id '" + compId + "' not found."));
     }
 
     private List<Event> getCompilationEvents(NewCompilationDto newCompilationDto, List<Long> compilationEventIds) {
@@ -121,6 +159,6 @@ public class CompilationServiceImpl implements CompilationService {
 
     private Compilation getCompilationWithEvents(Long compId) {
         return compilationRepository.findCompilationWithEventById(compId)
-                .orElseThrow(() -> new NotFoundException("Подборка с id '" + compId + "' не найдена."));
+                .orElseThrow(() -> new NotFoundException("Compilation with id '" + compId + "' not found."));
     }
 }

@@ -17,26 +17,44 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
+/**
+ * Public (for all users) API for categories
+ */
 @RestController
 @RequestMapping("/categories")
 @RequiredArgsConstructor
 @Validated
 @Slf4j
 public class CategoryPublicController {
+
     private final CategoryService categoryService;
+
     private final CategoryMapper categoryMapper;
 
+    /**
+     * Find categories by page. If nothing was found, returns empty list.
+     *
+     * @param from first element to display
+     * @param size number of elements to display
+     * @return found categories
+     */
     @GetMapping
     public List<CategoryDto> findCategories(@RequestParam(defaultValue = "0") @PositiveOrZero Long from,
                                             @RequestParam(defaultValue = "10") @Positive Integer size) {
-        log.info("Поиск категорий от = '{}', размер = '{}'.", from, size);
+        log.info("Finding categories from = '{}', size = '{}'.", from, size);
         List<Category> categories = categoryService.findCategories(from, size);
         return categoryMapper.toDtoList(categories);
     }
 
+    /**
+     * Find category by category id. If nothing was found, returns 404 response status.
+     *
+     * @param catId category id to find
+     * @return found category
+     */
     @GetMapping("/{catId}")
     public CategoryDto findCategoryById(@PathVariable Long catId) {
-        log.info("Поиск категории по id '{}'.", catId);
+        log.info("Finding category by id '{}'.", catId);
         Category category = categoryService.findCategoryById(catId);
         return categoryMapper.toDto(category);
     }

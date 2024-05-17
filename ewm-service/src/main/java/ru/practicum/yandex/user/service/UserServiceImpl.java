@@ -12,6 +12,7 @@ import ru.practicum.yandex.events.mapper.EventMapper;
 import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.events.model.EventState;
 import ru.practicum.yandex.events.model.Location;
+import ru.practicum.yandex.events.repository.CommentRepository;
 import ru.practicum.yandex.events.repository.EventRepository;
 import ru.practicum.yandex.events.repository.LocationRepository;
 import ru.practicum.yandex.shared.OffsetPageRequest;
@@ -41,14 +42,29 @@ import static ru.practicum.yandex.user.repository.UserSpecification.idIn;
 @RequiredArgsConstructor
 @Slf4j
 public class UserServiceImpl implements UserService {
+
     private final UserRepository userRepository;
+
     private final CategoryRepository categoryRepository;
+
     private final EventRepository eventRepository;
+
     private final LocationRepository locationRepository;
+
     private final ParticipationRequestRepository participationRequestRepository;
+
+    private final CommentRepository commentRepository;
+
     private final EventMapper eventMapper;
+
     private final ParticipationMapper participationMapper;
 
+    /**
+     * Add new user.
+     *
+     * @param userToAdd new user parameters
+     * @return added user
+     */
     @Override
     public User createUser(User userToAdd) {
         final User savedUser = userRepository.save(userToAdd);
@@ -56,6 +72,14 @@ public class UserServiceImpl implements UserService {
         return savedUser;
     }
 
+    /**
+     * Get information about users. If nothing found, returns empty list.
+     *
+     * @param ids  users ids to search in
+     * @param from first element to display
+     * @param size number of elements to display
+     * @return found users
+     */
     @Override
     public List<User> getUsers(List<Long> ids, Long from, Integer size) {
         final OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
@@ -65,6 +89,11 @@ public class UserServiceImpl implements UserService {
         return users;
     }
 
+    /**
+     * Delete user by user id.
+     *
+     * @param userId user id to delete
+     */
     @Override
     public void deleteUser(Long userId) {
         getUser(userId);
@@ -72,6 +101,13 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(userId);
     }
 
+    /**
+     * Add new event. If user was not found, throws NotFoundException.
+     *
+     * @param userId   event initiator id
+     * @param newEvent event parameters
+     * @return added event
+     */
     @Override
     @Transactional
     public Event addEventByUser(Long userId, NewEvent newEvent) {
@@ -85,6 +121,14 @@ public class UserServiceImpl implements UserService {
         return savedEvent;
     }
 
+    /**
+     * Find events added by user. If nothing found according to search filter, returns empty list.
+     *
+     * @param userId requester id
+     * @param from   first element to display
+     * @param size   number of elements to display
+     * @return list of events
+     */
     @Override
     public List<Event> findEventsFromUser(Long userId, Long from, Integer size) {
         getUser(userId);
@@ -94,6 +138,14 @@ public class UserServiceImpl implements UserService {
         return userEvents;
     }
 
+    /**
+     * Get full event info requested by event initiator. If user or event was not found, throws NotFoundException.
+     * If user is not event's initiator, throws NotAuthorizedException.
+     *
+     * @param userId  requester id
+     * @param eventId event id to find
+     * @return found event
+     */
     @Override
     public Event getFullEventByInitiator(Long userId, Long eventId) {
         getUser(userId);
@@ -103,6 +155,15 @@ public class UserServiceImpl implements UserService {
         return foundEvent;
     }
 
+    /**
+     * Update event information. Only not published events can be modified (otherwise throws EventNotModifiableException).
+     * If user or event was not found, throws NotFoundException.
+     *
+     * @param userId      requester id
+     * @param eventId     event id to be modified
+     * @param updateEvent event parameters to update
+     * @return updated event
+     */
     @Override
     @Transactional
     public Event updateEvent(Long userId, Long eventId, EventUpdateRequest updateEvent) {
@@ -116,42 +177,14 @@ public class UserServiceImpl implements UserService {
         return updatedEvent;
     }
 
-    @Override
-    @Transactional
-    public ParticipationRequest addParticipationRequestToEvent(Long userId, Long eventId) {
-        final User user = getUser(userId);
-        final Event event = getEvent(eventId);
-        checkIfUserCanMakeRequest(userId, eventId, event);
-        checkIfParticipationRequestExists(userId, eventId);
-        checkIfEventIsNotPublished(event, userId);
-        log.info("User with id '{}' added participation request for event with id '{}'.", userId, eventId);
-        final ParticipationRequest participationRequest = createParticipantRequest(user, event);
-        final ParticipationRequest savedRequest = participationRequestRepository.save(participationRequest);
-        log.info("Participation request with '{}' was saved. Current number of participants on event with id '{}' is '{}'.", participationRequest.getId(),
-                eventId, event.getNumberOfParticipants());
-        return savedRequest;
-    }
-
-    @Override
-    public List<ParticipationRequest> findParticipationRequestsByUser(Long userId) {
-        getUser(userId);
-        final List<ParticipationRequest> participationRequests = participationRequestRepository.findAllByRequesterId(userId);
-        log.info("User with id '{}' requesting event participation list with size '{}'.", userId, participationRequests.size());
-        return participationRequests;
-    }
-
-    @Override
-    @Transactional
-    public ParticipationRequest cancelOwnParticipationRequest(Long userId, Long requestId) {
-        getUser(userId);
-        final ParticipationRequest participationRequest = getParticipationRequest(requestId);
-        checkIfUserCanCancelParticipationRequest(userId, participationRequest);
-        participationRequest.setStatus(CANCELED);
-        log.info("Participation request with id '{}' was canceled by user with id '{}'.", participationRequest.getId(),
-                userId);
-        return participationRequest;
-    }
-
+    /**
+     * Find information about participation requests in event by event initiator. If user or event was not found,
+     * throws NotFoundException. If user is not event's initiator, throws NotAuthorizedException.
+     *
+     * @param userId  requester id
+     * @param eventId event id
+     * @return participation requests in event
+     */
     @Override
     public List<ParticipationRequest> findParticipationRequestsForUsersEvent(Long userId, Long eventId) {
         getUser(userId);
@@ -162,6 +195,17 @@ public class UserServiceImpl implements UserService {
         return participationRequests;
     }
 
+    /**
+     * Modify participation request status for an event. Only not published events can be modified. If event's
+     * participation limit is zero of pre-moderation is off, all requests are confirmed automatically. If user or event
+     * was not found, throws NotFoundException. If participation limit is reached, participation all remaining
+     * participation requests will be rejected automatically.
+     *
+     * @param userId       requester id
+     * @param eventId      event id
+     * @param statusUpdate request parameters to update
+     * @return result of participation requests status change
+     */
     @Override
     @Transactional
     public EventRequestStatusUpdateDto changeParticipationRequestStatusForUsersEvent(
@@ -180,6 +224,65 @@ public class UserServiceImpl implements UserService {
         log.info("Participation status for event with id '{}' was updated by user with id '{}'. Update request: '{}'.",
                 eventId, userId, statusUpdate);
         return eventRequestStatusUpdate;
+    }
+
+    /**
+     * Add participation request in event. Only one participation request can be added by user to the same event. Event
+     * initiator can not add participation request to his own event. Participation request can be added only to published
+     * event. If participation limit is set to zero or pre-moderation of event is off, requests are confirmed automatically.
+     * Requests can be confirmed until participation limit is not exceeded (if not set to zero).
+     *
+     * @param userId  requester id
+     * @param eventId event id to participate in
+     * @return saved participation request
+     */
+    @Override
+    @Transactional
+    public ParticipationRequest addParticipationRequestToEvent(Long userId, Long eventId) {
+        final User user = getUser(userId);
+        final Event event = getEvent(eventId);
+        checkIfUserCanMakeRequest(userId, eventId, event);
+        checkIfParticipationRequestExists(userId, eventId);
+        checkIfEventIsPublished(event, userId);
+        log.info("User with id '{}' added participation request for event with id '{}'.", userId, eventId);
+        final ParticipationRequest participationRequest = createParticipantRequest(user, event);
+        final ParticipationRequest savedRequest = participationRequestRepository.save(participationRequest);
+        log.info("Participation request with '{}' was saved. Current number of participants on event with id '{}' is '{}'.", participationRequest.getId(),
+                eventId, event.getNumberOfParticipants());
+        return savedRequest;
+    }
+
+    /**
+     * Find user's participation requests.
+     *
+     * @param userId user id
+     * @return participation requests
+     */
+    @Override
+    public List<ParticipationRequest> findParticipationRequestsByUser(Long userId) {
+        getUser(userId);
+        final List<ParticipationRequest> participationRequests = participationRequestRepository.findAllByRequesterId(userId);
+        log.info("User with id '{}' requesting event participation list with size '{}'.", userId, participationRequests.size());
+        return participationRequests;
+    }
+
+    /**
+     * Cancel user's participation requests. Only author of request can cancel it.
+     *
+     * @param userId    requester id
+     * @param requestId request id to cancel
+     * @return canceled request
+     */
+    @Override
+    @Transactional
+    public ParticipationRequest cancelOwnParticipationRequest(Long userId, Long requestId) {
+        getUser(userId);
+        final ParticipationRequest participationRequest = getParticipationRequest(requestId);
+        checkIfUserCanCancelParticipationRequest(userId, participationRequest);
+        participationRequest.setStatus(CANCELED);
+        log.info("Participation request with id '{}' was canceled by user with id '{}'.", participationRequest.getId(),
+                userId);
+        return participationRequest;
     }
 
     private int populateStatusUpdateDto(EventRequestStatusUpdateRequest statusUpdate, List<ParticipationRequest> participationRequests, EventRequestStatusUpdateDto eventRequestStatusUpdate, int lastConfirmedRequest, Event event, int participantLimit) {
@@ -309,7 +412,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void checkIfEventIsNotPublished(Event event, Long userId) {
+    private void checkIfEventIsPublished(Event event, Long userId) {
         if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new NotAuthorizedException("User with id '" + userId + "'can not make request to not published event " +
                     "with id '" + event.getId() + "'.");

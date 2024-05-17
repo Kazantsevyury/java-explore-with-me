@@ -41,8 +41,11 @@ import java.util.List;
 @Validated
 @Slf4j
 public class UserPrivateController {
+
     private final UserService userService;
+
     private final EventMapper eventMapper;
+
     private final ParticipationMapper participationMapper;
 
     /**

@@ -30,8 +30,11 @@ import static org.springframework.http.HttpStatus.CREATED;
 @Slf4j
 @RequiredArgsConstructor
 public class StatController {
+
     private final StatService statService;
+
     private final EndpointHitMapper endpointHitMapper;
+
     private final ViewStatsMapper viewStatsMapper;
 
     @PostMapping("/hit")

@@ -1,9 +1,9 @@
 package ru.practicum.yandex.user.service;
 
-import ru.practicum.yandex.user.dto.EventRequestStatusUpdateDto;
-import ru.practicum.yandex.user.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.yandex.events.dto.EventUpdateRequest;
 import ru.practicum.yandex.events.model.Event;
+import ru.practicum.yandex.user.dto.EventRequestStatusUpdateDto;
+import ru.practicum.yandex.user.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.yandex.user.model.NewEvent;
 import ru.practicum.yandex.user.model.ParticipationRequest;
 import ru.practicum.yandex.user.model.User;

@@ -16,7 +16,7 @@ public class CategoryDto {
 
     private Long id;
 
-    @NotBlank(message = "Название не должно быть пустым и должно содержать от 1 до 50 символов.")
-    @Size(min = 1, max = 50, message = "Название не должно быть пустым и должно содержать от 1 до 50 символов.")
+    @NotBlank(message = "Name must no be blank or empty and must have length between 1 and 50 characters.")
+    @Size(min = 1, max = 50, message = "Name must no be blank or empty and must have length between 1 and 50 characters.")
     private String name;
 }

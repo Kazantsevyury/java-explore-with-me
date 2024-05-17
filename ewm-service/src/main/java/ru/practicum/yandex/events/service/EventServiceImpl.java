@@ -2,7 +2,6 @@ package ru.practicum.yandex.events.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,13 +10,18 @@ import ru.practicum.yandex.events.dto.EventSearchFilter;
 import ru.practicum.yandex.events.dto.EventSort;
 import ru.practicum.yandex.events.dto.EventUpdateRequest;
 import ru.practicum.yandex.events.mapper.EventMapper;
+import ru.practicum.yandex.events.model.Comment;
 import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.events.model.EventState;
+import ru.practicum.yandex.events.repository.CommentRepository;
 import ru.practicum.yandex.events.repository.EventRepository;
+import ru.practicum.yandex.events.repository.EventSpecification;
 import ru.practicum.yandex.shared.OffsetPageRequest;
 import ru.practicum.yandex.shared.exception.NotAuthorizedException;
 import ru.practicum.yandex.shared.exception.NotFoundException;
 import ru.practicum.yandex.user.dto.StateAction;
+import ru.practicum.yandex.user.model.User;
+import ru.practicum.yandex.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -38,42 +42,81 @@ import static ru.practicum.yandex.events.repository.EventSpecification.textInAnn
 @RequiredArgsConstructor
 @Slf4j
 public class EventServiceImpl implements EventService {
+
     private final EventRepository eventRepository;
+
+    private final UserRepository userRepository;
+
+    private final CommentRepository commentRepository;
+
     private final EventMapper eventMapper;
 
+    /**
+     * Find event according to search filter. Only published events will be displayed. Text search (in annotation and
+     * description) is ignore case. If no date range is specified, than event with event date after current date will be
+     * displayed.
+     *
+     * @param searchFilter search filter
+     * @param from         first element to display
+     * @param size         number of elements to display
+     * @return list of events
+     */
     @Override
     public List<Event> findEvents(EventSearchFilter searchFilter, Long from, Integer size) {
-        Sort sort = getSort(searchFilter.getSort());
-        OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size, sort);
+        OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
         List<Specification<Event>> specifications = eventSearchFilterToSpecifications(searchFilter);
-        List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null),
+        Specification<Event> resultSpec = specifications.stream().reduce(Specification::and).orElse(null);
+        List<Event> events = eventRepository.findAll(getSort(searchFilter.getSort(), resultSpec),
                 pageRequest).getContent();
-        log.info("Запрос событий с фильтром '{}'. Количество событий: '{}'.", searchFilter, events.size());
+        log.info("Requesting events with filter '{}'. List size '{}.", searchFilter, events.size());
         return events;
     }
 
+    /**
+     * Get full event info by event id. Event must be published.
+     *
+     * @param id    event id to find
+     * @param views number of event views
+     * @return found event
+     */
     @Override
     public Event getFullEventInfoById(Long id, Long views) {
         Event event = getEvent(id);
         if (!event.getState().equals(EventState.PUBLISHED)) {
-            throw new NotFoundException("Событие с id '" + id + "' не опубликовано. Статус: '" + event.getState() + "'");
+            throw new NotFoundException("Event with id '" + id + "' is not published. State: '" + event.getState() + "'");
         }
         event.setViews(views);
         eventRepository.save(event);
-        log.info("Получена полная информация о событии с id '{}'.", id);
+        log.info("Requesting full event info with id '{}'.", id);
         return event;
     }
 
+    /**
+     * Find full events info according to search filter. If nothing was found, returns empty list.
+     *
+     * @param searchFilter search filter
+     * @param from         first element to display
+     * @param size         number of elements to display
+     * @return found events
+     */
     @Override
     public List<Event> getFullEventsInfoByAdmin(EventAdminSearchFilter searchFilter, Long from, Integer size) {
         OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
         List<Specification<Event>> specifications = eventAdminSearchFilterToSpecifications(searchFilter);
         List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null),
                 pageRequest).getContent();
-        log.info("Запрос полной информации о событиях администратором с фильтром '{}'. Количество событий: '{}'.", searchFilter, events.size());
+        log.info("Requesting full events info by admin  with filter '{}'. List size '{}'.", searchFilter, events.size());
         return events;
     }
 
+    /**
+     * Modify event parameters and status. Event must have state 'PENDING' to be modified. Only not published event can
+     * be canceled.
+     *
+     * @param eventId       event id to modify
+     * @param updateRequest event parameters to update
+     * @return updated event
+     */
     @Override
     @Transactional
     public Event updateEventByAdmin(Long eventId, EventUpdateRequest updateRequest) {
@@ -81,8 +124,76 @@ public class EventServiceImpl implements EventService {
         eventMapper.updateEvent(updateRequest, event);
         updateEventState(updateRequest.getStateAction(), event);
         Event savedEvent = eventRepository.save(event);
-        log.info("Событие с id '{}' обновлено администратором.", eventId);
+        log.info("Event with id '{}' was updated by admin.", eventId);
         return savedEvent;
+    }
+
+    /**
+     * Add comment to event.
+     *
+     * @param userId  user id adding comment
+     * @param eventId event id to comment
+     * @param comment comment
+     * @return added comment
+     */
+    @Override
+    public Event addCommentToEvent(Long userId, Long eventId, Comment comment) {
+        final User user = getUser(userId);
+        final Event event = getEvent(eventId);
+        comment.setAuthor(user);
+        comment.setEvent(event);
+        Comment savedComment = commentRepository.save(comment);
+        event.addCommentToEvent(savedComment);
+        eventRepository.save(event);
+        log.info("User with id '{}' added comment to event with id '{}'.", userId, eventId);
+        return event;
+    }
+
+    /**
+     * Update comment. Only author of comment can update comment.
+     *
+     * @param userId        user updating comment
+     * @param eventId       event comment to update
+     * @param updateComment update comment
+     * @return updated comment
+     */
+    @Override
+    public Event updateComment(Long userId, Long eventId, Comment updateComment) {
+        getUser(userId);
+        Comment comment = getComment(updateComment.getId());
+        checkIfUserIsCommentAuthor(userId, comment);
+        comment.setText(updateComment.getText());
+        Comment updatedComment = commentRepository.save(comment);
+        Event event = getEvent(eventId);
+        log.info("Comment with id '" + updatedComment.getId() + "' was updated.");
+        return event;
+    }
+
+    /**
+     * Delete comment. Only author of comment can delete comment.
+     *
+     * @param userId    user deleting comment
+     * @param commentId comment id to delete
+     */
+    @Override
+    public void deleteComment(Long userId, Long commentId) {
+        getUser(userId);
+        Comment comment = getComment(commentId);
+        checkIfUserIsCommentAuthor(userId, comment);
+        commentRepository.deleteById(commentId);
+        log.info("Comment with id '" + commentId + "' was deleted by user with id '" + userId + "'.");
+    }
+
+    private void checkIfUserIsCommentAuthor(Long userId, Comment comment) {
+        if (!comment.getAuthor().getId().equals(userId)) {
+            throw new NotAuthorizedException("User with id '" + userId + "' is not author of comment with id '" +
+                    comment.getId() + "'.");
+        }
+    }
+
+    private Comment getComment(Long commentId) {
+        return commentRepository.findCommentById(commentId)
+                .orElseThrow(() -> new NotFoundException("Comment with id '" + commentId + "' not found."));
     }
 
     private void updateEventState(StateAction stateAction, Event event) {
@@ -120,23 +231,25 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException("Event with id '" + id + "' was not found."));
     }
 
-    private Sort getSort(EventSort eventSort) {
-        Sort sort = Sort.unsorted();
-        if (eventSort == null) {
-            return sort;
-        }
+    private User getUser(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id '" + userId + "' not found."));
+    }
 
+    private Specification<Event> getSort(EventSort eventSort, Specification<Event> spec) {
+        if (eventSort == null) {
+            return EventSpecification.orderById(spec);
+        }
         switch (eventSort) {
             case VIEWS:
-                sort = Sort.by(Sort.Direction.DESC, "views");
-                break;
+                return EventSpecification.orderByViews(spec);
             case EVENT_DATE:
-                sort = Sort.by(Sort.Direction.DESC, "eventDate");
-                break;
+                return EventSpecification.orderByEventDate(spec);
+            case MOST_COMMENTS:
+                return EventSpecification.orderByNumberOfComments(spec);
             default:
                 throw new IllegalArgumentException("Sort '" + eventSort + "is not supported yet.");
         }
-        return sort;
     }
 
     private List<Specification<Event>> eventSearchFilterToSpecifications(EventSearchFilter searchFilter) {
