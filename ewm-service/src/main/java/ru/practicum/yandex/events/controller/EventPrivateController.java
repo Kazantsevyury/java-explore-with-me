@@ -2,78 +2,86 @@ package ru.practicum.yandex.events.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.yandex.StatClient;
-import ru.practicum.yandex.dto.EndpointHitDto;
-import ru.practicum.yandex.dto.ViewStatsDto;
+import ru.practicum.yandex.events.dto.AddCommentDto;
 import ru.practicum.yandex.events.dto.EventFullDto;
-import ru.practicum.yandex.events.dto.EventSearchFilter;
-import ru.practicum.yandex.events.dto.EventShortDto;
+import ru.practicum.yandex.events.dto.UpdateCommentDto;
+import ru.practicum.yandex.events.mapper.CommentMapper;
 import ru.practicum.yandex.events.mapper.EventMapper;
+import ru.practicum.yandex.events.model.Comment;
 import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.events.service.EventService;
-import ru.practicum.yandex.shared.exception.IncorrectDateRangeException;
 
-import javax.servlet.http.HttpServletRequest;
-import java.time.LocalDateTime;
-import java.util.List;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/events")
 @RequiredArgsConstructor
 @Slf4j
 public class EventPrivateController {
-    private static final String SERVICE_ID = "ewm-main-service";
+
     private final EventService eventService;
+
     private final EventMapper eventMapper;
-    private final StatClient statClient;
 
-    @GetMapping
-    public List<EventShortDto> findEvents(EventSearchFilter searchFilter,
-                                          @RequestParam(defaultValue = "0") Long from,
-                                          @RequestParam(defaultValue = "10") Integer size,
-                                          HttpServletRequest request) {
-        log.info("Запрос мероприятий, фильтр поиска: '{}'.", searchFilter);
-        validateDateRange(searchFilter);
-        List<Event> events = eventService.findEvents(searchFilter, from, size);
-        sendStatistics(request);
-        return eventMapper.toShortDtoList(events);
+    private final CommentMapper commentMapper;
+
+    /**
+     * Add comment to event. If comment added successfully, returns 201 response status.
+     *
+     * @param userId        user adding comment
+     * @param eventId       event to comment
+     * @param addCommentDto comment parameters
+     * @return added comment
+     */
+    @PostMapping("/{eventId}/comment/{userId}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public EventFullDto addCommentToEvent(@PathVariable Long userId,
+                                          @PathVariable Long eventId,
+                                          @RequestBody @Valid AddCommentDto addCommentDto) {
+        log.info("User with id '{}' adding comment to event with id '{}'.", userId, eventId);
+        final Comment comment = commentMapper.toModel(addCommentDto);
+        final Event commentedEvent = eventService.addCommentToEvent(userId, eventId, comment);
+        return eventMapper.toDto(commentedEvent);
     }
 
-    @GetMapping("/{id}")
-    public EventFullDto getFullEventInfoById(@PathVariable Long id,
-                                             HttpServletRequest request) {
-        log.info("Запрос полной информации о мероприятии с идентификатором '{}'.", id);
-        sendStatistics(request);
-        ViewStatsDto statistic = getStatisticsWithUniqueIp(request);
-        Long hits = statistic.getHits();
-        Event event = eventService.getFullEventInfoById(id, hits);
-        return eventMapper.toDto(event);
+    /**
+     * Update comment.
+     *
+     * @param userId           user updating comment
+     * @param eventId          event comment to update
+     * @param updateCommentDto update comment
+     * @return updated comment
+     */
+    @PatchMapping("/{eventId}/comment/{userId}")
+    public EventFullDto updateComment(@PathVariable Long userId,
+                                      @PathVariable Long eventId,
+                                      @RequestBody @Valid UpdateCommentDto updateCommentDto) {
+        log.info("User with id '{}' updating comment with id '{}'.", userId, updateCommentDto.getCommentId());
+        final Comment commentRequest = commentMapper.toModel(updateCommentDto);
+        final Event commentedEvent = eventService.updateComment(userId, eventId, commentRequest);
+        return eventMapper.toDto(commentedEvent);
     }
 
-    private void sendStatistics(HttpServletRequest request) {
-        EndpointHitDto endpointHitDto = EndpointHitDto.builder()
-                .app(SERVICE_ID)
-                .ip(request.getRemoteAddr())
-                .uri(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
-                .build();
-        statClient.methodHit(endpointHitDto);
-    }
-
-    private ViewStatsDto getStatisticsWithUniqueIp(HttpServletRequest request) {
-        return statClient.getUniqueIpStatsForUri(request.getRequestURI());
-    }
-
-    private void validateDateRange(EventSearchFilter searchFilter) {
-        if (searchFilter.getRangeStart() != null && searchFilter.getRangeEnd() != null) {
-            if (searchFilter.getRangeStart().isAfter(searchFilter.getRangeEnd())) {
-                throw new IncorrectDateRangeException("Неверный диапазон дат.");
-            }
-        }
+    /**
+     * Delete comment.
+     *
+     * @param userId    user deleting comment
+     * @param commentId comment id to delete
+     */
+    @DeleteMapping("/{userId}/comment/{commentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteComment(@PathVariable Long userId,
+                              @PathVariable Long commentId) {
+        log.info("User with id '{}' updating comment with id '{}'.", userId, commentId);
+        eventService.deleteComment(userId, commentId);
     }
 }
