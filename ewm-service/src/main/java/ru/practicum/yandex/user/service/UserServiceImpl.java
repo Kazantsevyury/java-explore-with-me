@@ -2,6 +2,7 @@ package ru.practicum.yandex.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +37,6 @@ import static ru.practicum.yandex.user.model.ParticipationStatus.CANCELED;
 import static ru.practicum.yandex.user.model.ParticipationStatus.CONFIRMED;
 import static ru.practicum.yandex.user.model.ParticipationStatus.PENDING;
 import static ru.practicum.yandex.user.model.ParticipationStatus.REJECTED;
-import static ru.practicum.yandex.user.repository.UserSpecification.idIn;
 
 @Service
 @RequiredArgsConstructor
@@ -72,19 +72,18 @@ public class UserServiceImpl implements UserService {
         return savedUser;
     }
 
-    /**
-     * Get information about users. If nothing found, returns empty list.
-     *
-     * @param ids  users ids to search in
-     * @param from first element to display
-     * @param size number of elements to display
-     * @return found users
-     */
     @Override
     public List<User> getUsers(List<Long> ids, Long from, Integer size) {
         final OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
-        Specification<User> idIn = idIn(ids);
-        List<User> users = userRepository.findAll(idIn, pageRequest).getContent();
+
+        Page<User> usersPage;
+        if (ids == null || ids.isEmpty()) {
+            usersPage = userRepository.findAll(pageRequest);
+        } else {
+            usersPage = userRepository.findByIdIn(ids, pageRequest);
+        }
+
+        List<User> users = usersPage.getContent();
         log.info("Requesting users with ids = '{}', from = '{}', size = '{}'.", ids, from, size);
         return users;
     }
