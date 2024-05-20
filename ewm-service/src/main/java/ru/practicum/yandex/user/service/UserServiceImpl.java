@@ -32,10 +32,7 @@ import ru.practicum.yandex.user.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
 
-import static ru.practicum.yandex.user.model.ParticipationStatus.CANCELED;
-import static ru.practicum.yandex.user.model.ParticipationStatus.CONFIRMED;
-import static ru.practicum.yandex.user.model.ParticipationStatus.PENDING;
-import static ru.practicum.yandex.user.model.ParticipationStatus.REJECTED;
+import static ru.practicum.yandex.user.model.ParticipationStatus.*;
 
 @Service
 @RequiredArgsConstructor
@@ -43,19 +40,12 @@ import static ru.practicum.yandex.user.model.ParticipationStatus.REJECTED;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-
     private final CategoryRepository categoryRepository;
-
     private final EventRepository eventRepository;
-
     private final LocationRepository locationRepository;
-
     private final ParticipationRequestRepository participationRequestRepository;
-
     private final CommentRepository commentRepository;
-
     private final EventMapper eventMapper;
-
     private final ParticipationMapper participationMapper;
 
     /**
@@ -66,22 +56,20 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User createUser(User userToAdd) {
-        final User savedUser = userRepository.save(userToAdd);
+        User savedUser = userRepository.save(userToAdd);
         log.info("Пользователь с id '{}' создан.", savedUser.getId());
         return savedUser;
     }
 
     @Override
     public List<User> getUsers(List<Long> ids, Long from, Integer size) {
-        final OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
-
+        OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
         Page<User> usersPage;
         if (ids == null || ids.isEmpty()) {
             usersPage = userRepository.findAll(pageRequest);
         } else {
             usersPage = userRepository.findByIdIn(ids, pageRequest);
         }
-
         List<User> users = usersPage.getContent();
         log.info("Запрос пользователей с ids = '{}', от = '{}', размер = '{}'.", ids, from, size);
         return users;
@@ -109,12 +97,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public Event addEventByUser(Long userId, NewEvent newEvent) {
-        final User initiator = getUser(userId);
-        final Category category = getCategory(newEvent);
-        final Location eventLocation = saveLocation(newEvent);
-        Event fullEvent;
-        fullEvent = createNewEvent(newEvent, category, initiator, eventLocation);
-        final Event savedEvent = eventRepository.save(fullEvent);
+        User initiator = getUser(userId);
+        Category category = getCategory(newEvent);
+        Location eventLocation = saveLocation(newEvent);
+        Event fullEvent = createNewEvent(newEvent, category, initiator, eventLocation);
+        Event savedEvent = eventRepository.save(fullEvent);
         log.info("Событие с id '{}' было сохранено.", savedEvent.getId());
         return savedEvent;
     }
@@ -130,15 +117,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<Event> findEventsFromUser(Long userId, Long from, Integer size) {
         getUser(userId);
-        final OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
-        final List<Event> userEvents = eventRepository.findEventsByUserId(userId, pageRequest);
+        OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
+        List<Event> userEvents = eventRepository.findEventsByUserId(userId, pageRequest);
         log.info("Запрос событий от пользователя с id '{}'. Найдено событий: '{}'.", userId, userEvents.size());
         return userEvents;
     }
 
     /**
-     * Получение полной информации о событии, запрошенной инициатором. Если пользователь или событие не найдено, выбрасывает NotFoundException.
-     * Если пользователь не является инициатором события, выбрасывает NotAuthorizedException.
+     * Получение полной информации о событии, запрошенной инициатором. Если пользователь или событие не найдено,
+     * выбрасывает NotFoundException. Если пользователь не является инициатором события, выбрасывает NotAuthorizedException.
      *
      * @param userId  идентификатор запрашивающего пользователя
      * @param eventId идентификатор события для поиска
@@ -147,7 +134,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Event getFullEventByInitiator(Long userId, Long eventId) {
         getUser(userId);
-        final Event foundEvent = getEvent(eventId);
+        Event foundEvent = getEvent(eventId);
         checkIfUserIsEventInitiator(userId, foundEvent);
         log.info("Запрос информации о событии с id '{}' пользователем с id '{}'.", eventId, userId);
         return foundEvent;
@@ -166,7 +153,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public Event updateEvent(Long userId, Long eventId, EventUpdateRequest updateEvent) {
         getUser(userId);
-        final Event eventToUpdate = getEvent(eventId);
+        Event eventToUpdate = getEvent(eventId);
         checkEventIsPublished(eventToUpdate);
         changeStateIfNeeded(updateEvent, eventToUpdate);
         eventMapper.updateEvent(updateEvent, eventToUpdate);
@@ -186,9 +173,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<ParticipationRequest> findParticipationRequestsForUsersEvent(Long userId, Long eventId) {
         getUser(userId);
-        final Event event = getEvent(eventId);
+        Event event = getEvent(eventId);
         checkIfUserIsEventInitiator(userId, event);
-        final List<ParticipationRequest> participationRequests = participationRequestRepository.findAllByEventId(eventId);
+        List<ParticipationRequest> participationRequests = participationRequestRepository.findAllByEventId(eventId);
         log.info("Получение запросов на участие для события с id '{}' пользователем с id '{}'.", eventId, userId);
         return participationRequests;
     }
@@ -207,16 +194,14 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public EventRequestStatusUpdateDto changeParticipationRequestStatusForUsersEvent(
-            Long userId,
-            Long eventId,
-            EventRequestStatusUpdateRequest statusUpdate) {
+            Long userId, Long eventId, EventRequestStatusUpdateRequest statusUpdate) {
         getUser(userId);
-        final Event event = getEvent(eventId);
+        Event event = getEvent(eventId);
         int participantLimit = checkParticipantLimit(event);
-        final List<Long> requestIds = statusUpdate.getRequestIds();
-        final List<ParticipationRequest> participationRequests = participationRequestRepository.findAllByIdIn(requestIds);
+        List<Long> requestIds = statusUpdate.getRequestIds();
+        List<ParticipationRequest> participationRequests = participationRequestRepository.findAllByIdIn(requestIds);
         int lastConfirmedRequest = 0;
-        final EventRequestStatusUpdateDto eventRequestStatusUpdate = new EventRequestStatusUpdateDto();
+        EventRequestStatusUpdateDto eventRequestStatusUpdate = new EventRequestStatusUpdateDto();
         lastConfirmedRequest = populateStatusUpdateDto(statusUpdate, participationRequests, eventRequestStatusUpdate, lastConfirmedRequest, event, participantLimit);
         rejectRemainingRequestsAfterExceedingParticipantLimit(lastConfirmedRequest, participationRequests, eventRequestStatusUpdate);
         log.info("Статус участия для события с id '{}' был обновлен пользователем с id '{}'. Запрос на обновление: '{}'.",
@@ -238,14 +223,14 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public ParticipationRequest addParticipationRequestToEvent(Long userId, Long eventId) {
-        final User user = getUser(userId);
-        final Event event = getEvent(eventId);
+        User user = getUser(userId);
+        Event event = getEvent(eventId);
         checkIfUserCanMakeRequest(userId, eventId, event);
         checkIfParticipationRequestExists(userId, eventId);
         checkIfEventIsPublished(event, userId);
         log.info("Пользователь с id '{}' добавил запрос на участие для события с id '{}'.", userId, eventId);
-        final ParticipationRequest participationRequest = createParticipantRequest(user, event);
-        final ParticipationRequest savedRequest = participationRequestRepository.save(participationRequest);
+        ParticipationRequest participationRequest = createParticipantRequest(user, event);
+        ParticipationRequest savedRequest = participationRequestRepository.save(participationRequest);
         log.info("Запрос на участие с id '{}' был сохранен. Текущее количество участников события с id '{}' составляет '{}'.",
                 participationRequest.getId(), eventId, event.getNumberOfParticipants());
         return savedRequest;
@@ -260,7 +245,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<ParticipationRequest> findParticipationRequestsByUser(Long userId) {
         getUser(userId);
-        final List<ParticipationRequest> participationRequests = participationRequestRepository.findAllByRequesterId(userId);
+        List<ParticipationRequest> participationRequests = participationRequestRepository.findAllByRequesterId(userId);
         log.info("Пользователь с id '{}' запрашивает список запросов на участие размером '{}'.", userId, participationRequests.size());
         return participationRequests;
     }
@@ -276,7 +261,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public ParticipationRequest cancelOwnParticipationRequest(Long userId, Long requestId) {
         getUser(userId);
-        final ParticipationRequest participationRequest = getParticipationRequest(requestId);
+        ParticipationRequest participationRequest = getParticipationRequest(requestId);
         checkIfUserCanCancelParticipationRequest(userId, participationRequest);
         participationRequest.setStatus(CANCELED);
         log.info("Запрос на участие с id '{}' был отменен пользователем с id '{}'.", participationRequest.getId(), userId);
@@ -315,15 +300,12 @@ public class UserServiceImpl implements UserService {
 
     private static int checkParticipantLimit(Event event) {
         int participantLimit = event.getParticipantLimit();
-
         if (participantLimit == 0 || !event.isRequestModeration()) {
             throw new EventNotModifiableException("Событие с id '" + event.getId() + "' не имеет лимита участников или " +
                     "предварительная модерация отключена. Нет необходимости подтверждать запросы. Лимит участников: '" + event.getParticipantLimit()
                     + "', Модерация: '" + event.isRequestModeration() + "'");
         }
-
         int currentParticipants = event.getNumberOfParticipants();
-
         if (currentParticipants == participantLimit) {
             throw new NotAuthorizedException("Лимит участников достигнут");
         }
@@ -359,7 +341,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private Location saveLocation(NewEvent newEvent) {
-        final Location eventLocation = locationRepository.save(newEvent.getLocation());
+        Location eventLocation = locationRepository.save(newEvent.getLocation());
         log.info("Служба пользователей, местоположение '{}' было сохранено.", eventLocation);
         return eventLocation;
     }
