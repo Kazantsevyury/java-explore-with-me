@@ -23,7 +23,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 /**
- * Admin API for users
+ * Административный API для пользователей
  */
 @RestController
 @RequiredArgsConstructor
@@ -37,46 +37,46 @@ public class UserAdminController {
     private final UserMapper userMapper;
 
     /**
-     * Add new user. If added successfully, returns 201 response status.
+     * Добавить нового пользователя. Если добавление прошло успешно, возвращает статус 201.
      *
-     * @param userShortDto new user parameters
-     * @return added user
+     * @param userShortDto параметры нового пользователя
+     * @return добавленный пользователь
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto createUser(@RequestBody @Valid NewUserRequest userShortDto) {
-        log.info("Adding new user: '{}'.", userShortDto);
+        log.info("Добавление нового пользователя: '{}'.", userShortDto);
         User userToAdd = userMapper.toModel(userShortDto);
         User savedUser = userService.createUser(userToAdd);
         return userMapper.toDto(savedUser);
     }
 
     /**
-     * Get information about users. If nothing found, returns empty list.
+     * Получить информацию о пользователях. Если ничего не найдено, возвращает пустой список.
      *
-     * @param ids  users ids to search in
-     * @param from first element to display
-     * @param size number of elements to display
-     * @return found users
+     * @param ids  идентификаторы пользователей для поиска
+     * @param from первый элемент для отображения
+     * @param size количество элементов для отображения
+     * @return найденные пользователи
      */
     @GetMapping
     public List<UserDto> getUsers(@RequestParam(required = false) List<Long> ids,
                                   @RequestParam(defaultValue = "0") Long from,
                                   @RequestParam(defaultValue = "10") Integer size) {
-        log.info("Requesting users, ids = '{}', from = '{}', size = '{}'.", ids, from, size);
+        log.info("Запрос пользователей, ids = '{}', from = '{}', size = '{}'.", ids, from, size);
         List<User> users = userService.getUsers(ids, from, size);
         return userMapper.toDtoList(users);
     }
 
     /**
-     * Delete user by user id. If deleted successfully, returns 204 response status.
+     * Удалить пользователя по его идентификатору. Если удаление прошло успешно, возвращает статус 204.
      *
-     * @param userId user id to delete
+     * @param userId идентификатор пользователя для удаления
      */
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long userId) {
-        log.info("Deleting user with id = '{}'.", userId);
+        log.info("Удаление пользователя с id = '{}'.", userId);
         userService.deleteUser(userId);
     }
 }
