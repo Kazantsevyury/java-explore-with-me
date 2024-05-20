@@ -8,6 +8,6 @@ import java.util.Optional;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    @Query("SELECT c FROM Comment c JOIN FETCH c.author a WHERE c.id = ?1")
+    @Query("SELECT c FROM Comment c JOIN FETCH c.author WHERE c.id = ?1")
     Optional<Comment> findCommentById(Long commentId);
 }
