@@ -52,14 +52,13 @@ public class EventServiceImpl implements EventService {
     private final EventMapper eventMapper;
 
     /**
-     * Find event according to search filter. Only published events will be displayed. Text search (in annotation and
-     * description) is ignore case. If no date range is specified, than event with event date after current date will be
-     * displayed.
+     * Найти мероприятие в соответствии с фильтром поиска. Будут отображаться только опубликованные мероприятия. Поиск текста (в аннотации и
+     * описании) нечувствителен к регистру. Если диапазон дат не указан, то будет отображено мероприятие с датой мероприятия после текущей даты.
      *
-     * @param searchFilter search filter
-     * @param from         first element to display
-     * @param size         number of elements to display
-     * @return list of events
+     * @param searchFilter фильтр поиска
+     * @param from         первый элемент для отображения
+     * @param size         количество элементов для отображения
+     * @return список мероприятий
      */
     @Override
     public List<Event> findEvents(EventSearchFilter searchFilter, Long from, Integer size) {
@@ -68,36 +67,36 @@ public class EventServiceImpl implements EventService {
         Specification<Event> resultSpec = specifications.stream().reduce(Specification::and).orElse(null);
         List<Event> events = eventRepository.findAll(getSort(searchFilter.getSort(), resultSpec),
                 pageRequest).getContent();
-        log.info("Requesting events with filter '{}'. List size '{}.", searchFilter, events.size());
+        log.info("Запрос мероприятий с фильтром '{}'. Размер списка '{}'.", searchFilter, events.size());
         return events;
     }
 
     /**
-     * Get full event info by event id. Event must be published.
+     * Получить полную информацию о мероприятии по его идентификатору. Мероприятие должно быть опубликовано.
      *
-     * @param id    event id to find
-     * @param views number of event views
-     * @return found event
+     * @param id    идентификатор мероприятия для поиска
+     * @param views количество просмотров мероприятия
+     * @return найденное мероприятие
      */
     @Override
     public Event getFullEventInfoById(Long id, Long views) {
         Event event = getEvent(id);
         if (!event.getState().equals(EventState.PUBLISHED)) {
-            throw new NotFoundException("Event with id '" + id + "' is not published. State: '" + event.getState() + "'");
+            throw new NotFoundException("Мероприятие с идентификатором '" + id + "' не опубликовано. Состояние: '" + event.getState() + "'");
         }
         event.setViews(views);
         eventRepository.save(event);
-        log.info("Requesting full event info with id '{}'.", id);
+        log.info("Запрос полной информации о мероприятии с идентификатором '{}'.", id);
         return event;
     }
 
     /**
-     * Find full events info according to search filter. If nothing was found, returns empty list.
+     * Найти полную информацию о мероприятиях согласно фильтру. Если ничего не найдено, возвращает пустой список.
      *
-     * @param searchFilter search filter
-     * @param from         first element to display
-     * @param size         number of elements to display
-     * @return found events
+     * @param searchFilter фильтр поиска
+     * @param from         первый элемент для отображения
+     * @param size         количество элементов для отображения
+     * @return найденные мероприятия
      */
     @Override
     public List<Event> getFullEventsInfoByAdmin(EventAdminSearchFilter searchFilter, Long from, Integer size) {
@@ -105,17 +104,17 @@ public class EventServiceImpl implements EventService {
         List<Specification<Event>> specifications = eventAdminSearchFilterToSpecifications(searchFilter);
         List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null),
                 pageRequest).getContent();
-        log.info("Requesting full events info by admin  with filter '{}'. List size '{}'.", searchFilter, events.size());
+        log.info("Запрос полной информации о мероприятиях администратором с фильтром '{}'. Размер списка '{}'.", searchFilter, events.size());
         return events;
     }
 
     /**
-     * Modify event parameters and status. Event must have state 'PENDING' to be modified. Only not published event can
-     * be canceled.
+     * Изменить параметры и статус мероприятия. Мероприятие должно иметь состояние 'PENDING', чтобы быть измененным. Только неопубликованное мероприятие может
+     * быть отменено.
      *
-     * @param eventId       event id to modify
-     * @param updateRequest event parameters to update
-     * @return updated event
+     * @param eventId       идентификатор мероприятия для изменения
+     * @param updateRequest параметры мероприятия для обновления
+     * @return обновленное мероприятие
      */
     @Override
     @Transactional
@@ -124,17 +123,17 @@ public class EventServiceImpl implements EventService {
         eventMapper.updateEvent(updateRequest, event);
         updateEventState(updateRequest.getStateAction(), event);
         Event savedEvent = eventRepository.save(event);
-        log.info("Event with id '{}' was updated by admin.", eventId);
+        log.info("Мероприятие с идентификатором '{}' было обновлено администратором.", eventId);
         return savedEvent;
     }
 
     /**
-     * Add comment to event.
+     * Добавить комментарий к мероприятию.
      *
-     * @param userId  user id adding comment
-     * @param eventId event id to comment
-     * @param comment comment
-     * @return added comment
+     * @param userId  идентификатор пользователя, добавляющего комментарий
+     * @param eventId идентификатор мероприятия для комментирования
+     * @param comment комментарий
+     * @return добавленный комментарий
      */
     @Override
     public Event addCommentToEvent(Long userId, Long eventId, Comment comment) {
@@ -145,17 +144,17 @@ public class EventServiceImpl implements EventService {
         Comment savedComment = commentRepository.save(comment);
         event.addCommentToEvent(savedComment);
         eventRepository.save(event);
-        log.info("User with id '{}' added comment to event with id '{}'.", userId, eventId);
+        log.info("Пользователь с идентификатором '{}' добавил комментарий к мероприятию с идентификатором '{}'.", userId, eventId);
         return event;
     }
 
     /**
-     * Update comment. Only author of comment can update comment.
+     * Обновить комментарий. Только автор комментария может обновить комментарий.
      *
-     * @param userId        user updating comment
-     * @param eventId       event comment to update
-     * @param updateComment update comment
-     * @return updated comment
+     * @param userId        идентификатор пользователя, обновляющего комментарий
+     * @param eventId       мероприятие, к которому относится комментарий, для обновления
+     * @param updateComment обновить комментарий
+     * @return обновленный комментарий
      */
     @Override
     public Event updateComment(Long userId, Long eventId, Comment updateComment) {
@@ -165,15 +164,15 @@ public class EventServiceImpl implements EventService {
         comment.setText(updateComment.getText());
         Comment updatedComment = commentRepository.save(comment);
         Event event = getEvent(eventId);
-        log.info("Comment with id '" + updatedComment.getId() + "' was updated.");
+        log.info("Комментарий с идентификатором '" + updatedComment.getId() + "' был обновлен.");
         return event;
     }
 
     /**
-     * Delete comment. Only author of comment can delete comment.
+     * Удалить комментарий. Только автор комментария может удалить комментарий.
      *
-     * @param userId    user deleting comment
-     * @param commentId comment id to delete
+     * @param userId    идентификатор пользователя, удаляющего комментарий
+     * @param commentId идентификатор комментария для удаления
      */
     @Override
     public void deleteComment(Long userId, Long commentId) {
@@ -181,19 +180,19 @@ public class EventServiceImpl implements EventService {
         Comment comment = getComment(commentId);
         checkIfUserIsCommentAuthor(userId, comment);
         commentRepository.deleteById(commentId);
-        log.info("Comment with id '" + commentId + "' was deleted by user with id '" + userId + "'.");
+        log.info("Комментарий с идентификатором '" + commentId + "' был удален пользователем с идентификатором '" + userId + "'.");
     }
 
     private void checkIfUserIsCommentAuthor(Long userId, Comment comment) {
         if (!comment.getAuthor().getId().equals(userId)) {
-            throw new NotAuthorizedException("User with id '" + userId + "' is not author of comment with id '" +
+            throw new NotAuthorizedException("Пользователь с идентификатором '" + userId + "' не является автором комментария с идентификатором '" +
                     comment.getId() + "'.");
         }
     }
 
     private Comment getComment(Long commentId) {
         return commentRepository.findCommentById(commentId)
-                .orElseThrow(() -> new NotFoundException("Comment with id '" + commentId + "' not found."));
+                .orElseThrow(() -> new NotFoundException("Комментарий с идентификатором '" + commentId + "' не найден."));
     }
 
     private void updateEventState(StateAction stateAction, Event event) {
@@ -216,24 +215,24 @@ public class EventServiceImpl implements EventService {
 
     private void checkIfEventIsCanceled(Event event) {
         if (event.getState().equals(EventState.CANCELED)) {
-            throw new NotAuthorizedException("Can not publish canceled event.");
+            throw new NotAuthorizedException("Невозможно опубликовать отмененное мероприятие.");
         }
     }
 
     private void checkIfEventIsAlreadyPublished(Event event) {
         if (event.getState().equals(EventState.PUBLISHED)) {
-            throw new NotAuthorizedException("Event is already published.");
+            throw new NotAuthorizedException("Мероприятие уже опубликовано.");
         }
     }
 
     private Event getEvent(Long id) {
         return eventRepository.findFullEventById(id)
-                .orElseThrow(() -> new NotFoundException("Event with id '" + id + "' was not found."));
+                .orElseThrow(() -> new NotFoundException("Мероприятие с идентификатором '" + id + "' не найдено."));
     }
 
     private User getUser(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id '" + userId + "' not found."));
+                .orElseThrow(() -> new NotFoundException("Пользователь с идентификатором '" + userId + "' не найден."));
     }
 
     private Specification<Event> getSort(EventSort eventSort, Specification<Event> spec) {
@@ -248,7 +247,7 @@ public class EventServiceImpl implements EventService {
             case MOST_COMMENTS:
                 return EventSpecification.orderByNumberOfComments(spec);
             default:
-                throw new IllegalArgumentException("Sort '" + eventSort + "is not supported yet.");
+                throw new IllegalArgumentException("Сортировка '" + eventSort + "еще не поддерживается.");
         }
     }
 
