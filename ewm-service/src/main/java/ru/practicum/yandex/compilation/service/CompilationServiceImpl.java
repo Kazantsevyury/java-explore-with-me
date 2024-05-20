@@ -26,14 +26,13 @@ import java.util.stream.Collectors;
 public class CompilationServiceImpl implements CompilationService {
 
     private final CompilationRepository compilationRepository;
-
     private final EventRepository eventRepository;
 
     /**
-     * Add new event compilation. Compilation can have no events.
+     * Добавление новой подборки событий. Подборка может не содержать событий.
      *
-     * @param newCompilationDto new compilation parameters
-     * @return added compilation
+     * @param newCompilationDto параметры новой подборки
+     * @return добавленная подборка
      */
     @Override
     @Transactional
@@ -46,16 +45,16 @@ public class CompilationServiceImpl implements CompilationService {
                 .events(compilationEvents)
                 .build();
         Compilation savedCompilation = compilationRepository.save(compilation);
-        log.info("Compilation with id '{}' was saved.", savedCompilation.getId());
+        log.info("Сохранена подборка с id '{}'.", savedCompilation.getId());
         return savedCompilation;
     }
 
     /**
-     * Update event compilation parameters.
+     * Обновление параметров подборки событий.
      *
-     * @param compId        compilation id to update
-     * @param updateRequest update parameters
-     * @return updated compilation
+     * @param compId         идентификатор подборки для обновления
+     * @param updateRequest  параметры обновления
+     * @return обновленная подборка
      */
     @Override
     @Transactional
@@ -63,30 +62,30 @@ public class CompilationServiceImpl implements CompilationService {
         Compilation compilation = getCompilationWithEvents(compId);
         updateCompilationIfNeeded(updateRequest, compilation);
         Compilation savedCompilation = compilationRepository.save(compilation);
-        log.info("Compilation with id '{}' was updated.", compId);
+        log.info("Обновлена подборка с id '{}'.", compId);
         return savedCompilation;
     }
 
     /**
-     * Delete compilation by compilation id. If deleted successfully, returns 204 response status.
+     * Удаление подборки по идентификатору подборки. Если удалено успешно, возвращает статус ответа 204.
      *
-     * @param compId compilation id to delete
+     * @param compId идентификатор подборки для удаления
      */
     @Override
     @Transactional
     public void deleteCompilation(Long compId) {
         getCompilation(compId);
         compilationRepository.deleteById(compId);
-        log.info("Compilation with id '{}' was deleted.", compId);
+        log.info("Подборка с id '{}' удалена.", compId);
     }
 
     /**
-     * Find event compilations. If nothing was found according to search filter, returns empty list.
+     * Поиск подборок событий. Если ничего не найдено в соответствии с фильтром поиска, возвращает пустой список.
      *
-     * @param pinned search only pinned event compilations
-     * @param from   first event compilation to display (not required, default value 0)
-     * @param size   number of event compilations to display (not required, default value 10)
-     * @return lists of event compilations
+     * @param pinned поиск только закрепленных подборок событий
+     * @param from   первая подборка событий для отображения (необязательно, значение по умолчанию 0)
+     * @param size   количество подборок событий для отображения (необязательно, значение по умолчанию 10)
+     * @return списки подборок событий
      */
     @Override
     public List<Compilation> findCompilations(Boolean pinned, Long from, Integer size) {
@@ -94,21 +93,21 @@ public class CompilationServiceImpl implements CompilationService {
         OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
         List<Compilation> compilations = compilationRepository
                 .findAll(specifications.stream().reduce(Specification::and).orElse(null), pageRequest).getContent();
-        log.info("Requesting compilations, search filter: pinned - '{}', from - '{}', size - '{}'. List size - '{}'.",
+        log.info("Запрос подборок с параметрами: pinned - '{}', from - '{}', size - '{}'. Размер списка - '{}'.",
                 pinned, from, size, compilations.size());
         return compilations;
     }
 
     /**
-     * Find event compilation by id. If nothing found, throws NotFoundException.
+     * Поиск подборки событий по идентификатору. Если ничего не найдено, возвращает NotFoundException.
      *
-     * @param compId event compilation id
-     * @return found compilation
+     * @param compId идентификатор подборки событий
+     * @return найденная подборка
      */
     @Override
     public Compilation findCompilationById(Long compId) {
         Compilation compilation = getCompilationWithEvents(compId);
-        log.info("Compilation with id '{}' was requested.", compId);
+        log.info("Запрос подборки с id '{}'.", compId);
         return compilation;
     }
 
@@ -116,7 +115,6 @@ public class CompilationServiceImpl implements CompilationService {
         List<Specification<Compilation>> resultSpecification = new ArrayList<>();
         resultSpecification.add(pinned == null ? null : isPinned(pinned));
         return resultSpecification.stream().filter(Objects::nonNull).collect(Collectors.toList());
-
     }
 
     private Specification<Compilation> isPinned(Boolean pinned) {
@@ -144,7 +142,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     private Compilation getCompilation(Long compId) {
         return compilationRepository.findById(compId)
-                .orElseThrow(() -> new NotFoundException("Compilation with id '" + compId + "' not found."));
+                .orElseThrow(() -> new NotFoundException("Подборка с id '" + compId + "' не найдена."));
     }
 
     private List<Event> getCompilationEvents(NewCompilationDto newCompilationDto, List<Long> compilationEventIds) {
@@ -159,6 +157,6 @@ public class CompilationServiceImpl implements CompilationService {
 
     private Compilation getCompilationWithEvents(Long compId) {
         return compilationRepository.findCompilationWithEventById(compId)
-                .orElseThrow(() -> new NotFoundException("Compilation with id '" + compId + "' not found."));
+                .orElseThrow(() -> new NotFoundException("Подборка с id '" + compId + "' не найдена."));
     }
 }

@@ -20,29 +20,28 @@ import java.util.List;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
-
     private final EventRepository eventRepository;
 
     /**
-     * Add new category. Category name must be unique.
+     * Добавление новой категории. Имя категории должно быть уникальным.
      *
-     * @param category new category parameters
-     * @return added category
+     * @param category параметры новой категории
+     * @return добавленная категория
      */
     @Override
     @Transactional
     public Category addCategory(Category category) {
         final Category savedCategory = categoryRepository.save(category);
-        log.info("CategoryController, category with id '{}' was saved.", savedCategory.getId());
+        log.info("CategoryController, категория с id '{}' была сохранена.", savedCategory.getId());
         return savedCategory;
     }
 
     /**
-     * Update category. Category name must be unique. If category with catId not found, throws NotFoundException.
+     * Обновление категории. Имя категории должно быть уникальным. Если категория с catId не найдена, генерирует NotFoundException.
      *
-     * @param catId          category id to update
-     * @param updateCategory category parameters to update
-     * @return updated category
+     * @param catId          идентификатор категории для обновления
+     * @param updateCategory параметры категории для обновления
+     * @return обновленная категория
      */
     @Override
     @Transactional
@@ -50,14 +49,14 @@ public class CategoryServiceImpl implements CategoryService {
         final Category foundCategory = getCategory(catId);
         foundCategory.setName(updateCategory.getName());
         final Category updatedCategory = categoryRepository.save(foundCategory);
-        log.info("CategoryController, update category with id '{}', new name: '{}'.", catId, updatedCategory.getName());
+        log.info("CategoryController, обновление категории с id '{}', новое имя: '{}'.", catId, updatedCategory.getName());
         return updatedCategory;
     }
 
     /**
-     * Delete category by category id. Category can not be linked to any events, otherwise throws NotAuthorizedException.
+     * Удаление категории по идентификатору категории. Категория не может быть связана с событиями, в противном случае генерирует NotAuthorizedException.
      *
-     * @param catId category id to delete
+     * @param catId идентификатор категории для удаления
      */
     @Override
     @Transactional
@@ -65,47 +64,47 @@ public class CategoryServiceImpl implements CategoryService {
         getCategory(catId);
         checkIfCategoryHaveAnyEvents(catId);
         categoryRepository.deleteById(catId);
-        log.info("CategoryController, deleted category with id '" + catId + "'.");
+        log.info("CategoryController, удалена категория с id '" + catId + "'.");
     }
 
     /**
-     * Find categories by page. If nothing was found, returns empty list.
+     * Поиск категорий по странице. Если ничего не найдено, возвращает пустой список.
      *
-     * @param from first element to display
-     * @param size number of elements to display
-     * @return found categories
+     * @param from первый элемент для отображения
+     * @param size количество элементов для отображения
+     * @return найденные категории
      */
     @Override
     public List<Category> findCategories(Long from, Integer size) {
         OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
         Page<Category> categories = categoryRepository.findAll(pageRequest);
-        log.info("CategoryService find categories from '{}', size '{}'. Found categories: '{}'.", from, size,
+        log.info("CategoryService поиск категорий от '{}', размер '{}'. Найдено категорий: '{}'.", from, size,
                 categories.getSize());
         return categories.getContent();
     }
 
     /**
-     * Find category by category id. If nothing was found, throws NotFoundException.
+     * Поиск категории по идентификатору категории. Если ничего не найдено, генерирует NotFoundException.
      *
-     * @param catId category id to find
-     * @return found category
+     * @param catId идентификатор категории для поиска
+     * @return найденная категория
      */
     @Override
     public Category findCategoryById(Long catId) {
         Category category = getCategory(catId);
-        log.info("CategoryService category found: " + category);
+        log.info("CategoryService категория найдена: " + category);
         return category;
     }
 
     private Category getCategory(Long catId) {
         return categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Category with id '" + catId + "' not found."));
+                .orElseThrow(() -> new NotFoundException("Категория с id '" + catId + "' не найдена."));
     }
 
     private void checkIfCategoryHaveAnyEvents(Long catId) {
         long eventWithSameCategory = eventRepository.countEventsByCategoryId(catId);
         if (eventWithSameCategory > 0) {
-            throw new NotAuthorizedException("Category with id '" + catId + "' still have other event attached to it.");
+            throw new NotAuthorizedException("Категория с id '" + catId + "' все еще имеет другое событие, прикрепленное к ней.");
         }
     }
 }
