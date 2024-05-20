@@ -59,15 +59,15 @@ public class UserServiceImpl implements UserService {
     private final ParticipationMapper participationMapper;
 
     /**
-     * Add new user.
+     * Добавление нового пользователя.
      *
-     * @param userToAdd new user parameters
-     * @return added user
+     * @param userToAdd параметры нового пользователя
+     * @return добавленный пользователь
      */
     @Override
     public User createUser(User userToAdd) {
         final User savedUser = userRepository.save(userToAdd);
-        log.info("User with id '{}' created.", savedUser.getId());
+        log.info("Пользователь с id '{}' создан.", savedUser.getId());
         return savedUser;
     }
 
@@ -83,28 +83,28 @@ public class UserServiceImpl implements UserService {
         }
 
         List<User> users = usersPage.getContent();
-        log.info("Requesting users with ids = '{}', from = '{}', size = '{}'.", ids, from, size);
+        log.info("Запрос пользователей с ids = '{}', от = '{}', размер = '{}'.", ids, from, size);
         return users;
     }
 
     /**
-     * Delete user by user id.
+     * Удаление пользователя по его идентификатору.
      *
-     * @param userId user id to delete
+     * @param userId идентификатор пользователя для удаления
      */
     @Override
     public void deleteUser(Long userId) {
         getUser(userId);
-        log.info("Deleting user with id '" + userId + "'.");
+        log.info("Удаление пользователя с id '{}'.", userId);
         userRepository.deleteById(userId);
     }
 
     /**
-     * Add new event. If user was not found, throws NotFoundException.
+     * Добавление нового события. Если пользователь не найден, выбрасывает NotFoundException.
      *
-     * @param userId   event initiator id
-     * @param newEvent event parameters
-     * @return added event
+     * @param userId   идентификатор инициатора события
+     * @param newEvent параметры события
+     * @return добавленное событие
      */
     @Override
     @Transactional
@@ -115,52 +115,52 @@ public class UserServiceImpl implements UserService {
         Event fullEvent;
         fullEvent = createNewEvent(newEvent, category, initiator, eventLocation);
         final Event savedEvent = eventRepository.save(fullEvent);
-        log.info("Event with id '{}' was saved.", savedEvent.getId());
+        log.info("Событие с id '{}' было сохранено.", savedEvent.getId());
         return savedEvent;
     }
 
     /**
-     * Find events added by user. If nothing found according to search filter, returns empty list.
+     * Поиск событий, добавленных пользователем. Если по фильтру поиска ничего не найдено, возвращает пустой список.
      *
-     * @param userId requester id
-     * @param from   first element to display
-     * @param size   number of elements to display
-     * @return list of events
+     * @param userId идентификатор запрашивающего пользователя
+     * @param from   первый элемент для отображения
+     * @param size   количество элементов для отображения
+     * @return список событий
      */
     @Override
     public List<Event> findEventsFromUser(Long userId, Long from, Integer size) {
         getUser(userId);
         final OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
         final List<Event> userEvents = eventRepository.findEventsByUserId(userId, pageRequest);
-        log.info("Requesting event from user with id '{}'. Events found: '{}'.", userId, userEvents.size());
+        log.info("Запрос событий от пользователя с id '{}'. Найдено событий: '{}'.", userId, userEvents.size());
         return userEvents;
     }
 
     /**
-     * Get full event info requested by event initiator. If user or event was not found, throws NotFoundException.
-     * If user is not event's initiator, throws NotAuthorizedException.
+     * Получение полной информации о событии, запрошенной инициатором. Если пользователь или событие не найдено, выбрасывает NotFoundException.
+     * Если пользователь не является инициатором события, выбрасывает NotAuthorizedException.
      *
-     * @param userId  requester id
-     * @param eventId event id to find
-     * @return found event
+     * @param userId  идентификатор запрашивающего пользователя
+     * @param eventId идентификатор события для поиска
+     * @return найденное событие
      */
     @Override
     public Event getFullEventByInitiator(Long userId, Long eventId) {
         getUser(userId);
         final Event foundEvent = getEvent(eventId);
         checkIfUserIsEventInitiator(userId, foundEvent);
-        log.info("Requesting info about event with id '{}' by user with id '{}'.", eventId, userId);
+        log.info("Запрос информации о событии с id '{}' пользователем с id '{}'.", eventId, userId);
         return foundEvent;
     }
 
     /**
-     * Update event information. Only not published events can be modified (otherwise throws EventNotModifiableException).
-     * If user or event was not found, throws NotFoundException.
+     * Обновление информации о событии. Изменять можно только неопубликованные события (иначе выбрасывает EventNotModifiableException).
+     * Если пользователь или событие не найдено, выбрасывает NotFoundException.
      *
-     * @param userId      requester id
-     * @param eventId     event id to be modified
-     * @param updateEvent event parameters to update
-     * @return updated event
+     * @param userId      идентификатор запрашивающего пользователя
+     * @param eventId     идентификатор события для изменения
+     * @param updateEvent параметры для обновления события
+     * @return обновленное событие
      */
     @Override
     @Transactional
@@ -171,17 +171,17 @@ public class UserServiceImpl implements UserService {
         changeStateIfNeeded(updateEvent, eventToUpdate);
         eventMapper.updateEvent(updateEvent, eventToUpdate);
         Event updatedEvent = eventRepository.save(eventToUpdate);
-        log.info("Event with id '{}' was updated by user with id '{}'.", eventId, userId);
+        log.info("Событие с id '{}' было обновлено пользователем с id '{}'.", eventId, userId);
         return updatedEvent;
     }
 
     /**
-     * Find information about participation requests in event by event initiator. If user or event was not found,
-     * throws NotFoundException. If user is not event's initiator, throws NotAuthorizedException.
+     * Поиск информации о запросах на участие в событии инициатором события. Если пользователь или событие не найдено,
+     * выбрасывает NotFoundException. Если пользователь не является инициатором события, выбрасывает NotAuthorizedException.
      *
-     * @param userId  requester id
-     * @param eventId event id
-     * @return participation requests in event
+     * @param userId  идентификатор запрашивающего пользователя
+     * @param eventId идентификатор события
+     * @return запросы на участие в событии
      */
     @Override
     public List<ParticipationRequest> findParticipationRequestsForUsersEvent(Long userId, Long eventId) {
@@ -189,20 +189,20 @@ public class UserServiceImpl implements UserService {
         final Event event = getEvent(eventId);
         checkIfUserIsEventInitiator(userId, event);
         final List<ParticipationRequest> participationRequests = participationRequestRepository.findAllByEventId(eventId);
-        log.info("Getting participation requests for event with id '{}' by user with id '{}'.", eventId, userId);
+        log.info("Получение запросов на участие для события с id '{}' пользователем с id '{}'.", eventId, userId);
         return participationRequests;
     }
 
     /**
-     * Modify participation request status for an event. Only not published events can be modified. If event's
-     * participation limit is zero of pre-moderation is off, all requests are confirmed automatically. If user or event
-     * was not found, throws NotFoundException. If participation limit is reached, participation all remaining
-     * participation requests will be rejected automatically.
+     * Изменение статуса запроса на участие в событии. Изменять можно только неопубликованные события. Если лимит
+     * участников события равен нулю или предварительная модерация отключена, все запросы автоматически подтверждаются.
+     * Если пользователь или событие не найдено, выбрасывает NotFoundException. Если лимит участников достигнут, все
+     * оставшиеся запросы на участие будут автоматически отклонены.
      *
-     * @param userId       requester id
-     * @param eventId      event id
-     * @param statusUpdate request parameters to update
-     * @return result of participation requests status change
+     * @param userId       идентификатор запрашивающего пользователя
+     * @param eventId      идентификатор события
+     * @param statusUpdate параметры для обновления статуса запроса
+     * @return результат изменения статуса запроса на участие
      */
     @Override
     @Transactional
@@ -219,20 +219,21 @@ public class UserServiceImpl implements UserService {
         final EventRequestStatusUpdateDto eventRequestStatusUpdate = new EventRequestStatusUpdateDto();
         lastConfirmedRequest = populateStatusUpdateDto(statusUpdate, participationRequests, eventRequestStatusUpdate, lastConfirmedRequest, event, participantLimit);
         rejectRemainingRequestsAfterExceedingParticipantLimit(lastConfirmedRequest, participationRequests, eventRequestStatusUpdate);
-        log.info("Participation status for event with id '{}' was updated by user with id '{}'. Update request: '{}'.",
+        log.info("Статус участия для события с id '{}' был обновлен пользователем с id '{}'. Запрос на обновление: '{}'.",
                 eventId, userId, statusUpdate);
         return eventRequestStatusUpdate;
     }
 
     /**
-     * Add participation request in event. Only one participation request can be added by user to the same event. Event
-     * initiator can not add participation request to his own event. Participation request can be added only to published
-     * event. If participation limit is set to zero or pre-moderation of event is off, requests are confirmed automatically.
-     * Requests can be confirmed until participation limit is not exceeded (if not set to zero).
+     * Добавление запроса на участие в событии. Только один запрос на участие может быть добавлен пользователем к одному событию.
+     * Инициатор события не может добавить запрос на участие в свое собственное событие. Запрос на участие может быть добавлен
+     * только к опубликованному событию. Если лимит участников равен нулю или предварительная модерация события отключена,
+     * запросы автоматически подтверждаются. Запросы могут быть подтверждены до тех пор, пока лимит участников не превышен
+     * (если не установлен в ноль).
      *
-     * @param userId  requester id
-     * @param eventId event id to participate in
-     * @return saved participation request
+     * @param userId  идентификатор запрашивающего пользователя
+     * @param eventId идентификатор события для участия
+     * @return сохраненный запрос на участие
      */
     @Override
     @Transactional
@@ -242,34 +243,34 @@ public class UserServiceImpl implements UserService {
         checkIfUserCanMakeRequest(userId, eventId, event);
         checkIfParticipationRequestExists(userId, eventId);
         checkIfEventIsPublished(event, userId);
-        log.info("User with id '{}' added participation request for event with id '{}'.", userId, eventId);
+        log.info("Пользователь с id '{}' добавил запрос на участие для события с id '{}'.", userId, eventId);
         final ParticipationRequest participationRequest = createParticipantRequest(user, event);
         final ParticipationRequest savedRequest = participationRequestRepository.save(participationRequest);
-        log.info("Participation request with '{}' was saved. Current number of participants on event with id '{}' is '{}'.", participationRequest.getId(),
-                eventId, event.getNumberOfParticipants());
+        log.info("Запрос на участие с id '{}' был сохранен. Текущее количество участников события с id '{}' составляет '{}'.",
+                participationRequest.getId(), eventId, event.getNumberOfParticipants());
         return savedRequest;
     }
 
     /**
-     * Find user's participation requests.
+     * Поиск запросов на участие пользователя.
      *
-     * @param userId user id
-     * @return participation requests
+     * @param userId идентификатор пользователя
+     * @return запросы на участие
      */
     @Override
     public List<ParticipationRequest> findParticipationRequestsByUser(Long userId) {
         getUser(userId);
         final List<ParticipationRequest> participationRequests = participationRequestRepository.findAllByRequesterId(userId);
-        log.info("User with id '{}' requesting event participation list with size '{}'.", userId, participationRequests.size());
+        log.info("Пользователь с id '{}' запрашивает список запросов на участие размером '{}'.", userId, participationRequests.size());
         return participationRequests;
     }
 
     /**
-     * Cancel user's participation requests. Only author of request can cancel it.
+     * Отмена запросов на участие пользователя. Только автор запроса может его отменить.
      *
-     * @param userId    requester id
-     * @param requestId request id to cancel
-     * @return canceled request
+     * @param userId    идентификатор запрашивающего пользователя
+     * @param requestId идентификатор запроса для отмены
+     * @return отмененный запрос
      */
     @Override
     @Transactional
@@ -278,15 +279,14 @@ public class UserServiceImpl implements UserService {
         final ParticipationRequest participationRequest = getParticipationRequest(requestId);
         checkIfUserCanCancelParticipationRequest(userId, participationRequest);
         participationRequest.setStatus(CANCELED);
-        log.info("Participation request with id '{}' was canceled by user with id '{}'.", participationRequest.getId(),
-                userId);
+        log.info("Запрос на участие с id '{}' был отменен пользователем с id '{}'.", participationRequest.getId(), userId);
         return participationRequest;
     }
 
     private int populateStatusUpdateDto(EventRequestStatusUpdateRequest statusUpdate, List<ParticipationRequest> participationRequests, EventRequestStatusUpdateDto eventRequestStatusUpdate, int lastConfirmedRequest, Event event, int participantLimit) {
         for (ParticipationRequest participationRequest : participationRequests) {
             if (!participationRequest.getStatus().equals(PENDING)) {
-                throw new NotAuthorizedException("For status change request must have status PENDING. Current status: '"
+                throw new NotAuthorizedException("Для изменения статуса запрос должен иметь статус PENDING. Текущий статус: '"
                         + participationRequest.getStatus() + "'");
             }
             participationRequest.setStatus(statusUpdate.getStatus());
@@ -317,41 +317,41 @@ public class UserServiceImpl implements UserService {
         int participantLimit = event.getParticipantLimit();
 
         if (participantLimit == 0 || !event.isRequestModeration()) {
-            throw new EventNotModifiableException("Event with id '" + event.getId() + "' has no participant limit or " +
-                    "pre moderation if off. No need to confirm requests. Participant limit: '" + event.getParticipantLimit()
-                    + "', Moderation: '" + event.isRequestModeration() + "'");
+            throw new EventNotModifiableException("Событие с id '" + event.getId() + "' не имеет лимита участников или " +
+                    "предварительная модерация отключена. Нет необходимости подтверждать запросы. Лимит участников: '" + event.getParticipantLimit()
+                    + "', Модерация: '" + event.isRequestModeration() + "'");
         }
 
         int currentParticipants = event.getNumberOfParticipants();
 
         if (currentParticipants == participantLimit) {
-            throw new NotAuthorizedException("The participant limit has been reached");
+            throw new NotAuthorizedException("Лимит участников достигнут");
         }
         return participantLimit;
     }
 
     private void checkIfUserIsEventInitiator(Long userId, Event event) {
         if (!event.getInitiator().getId().equals(userId)) {
-            throw new NotAuthorizedException("User with id '" + userId + "' is not an initiator of event with id '" +
+            throw new NotAuthorizedException("Пользователь с id '" + userId + "' не является инициатором события с id '" +
                     event.getId() + "'.");
         }
     }
 
     private void checkIfUserCanCancelParticipationRequest(Long userId, ParticipationRequest participationRequest) {
         if (!participationRequest.getRequester().getId().equals(userId)) {
-            throw new NotAuthorizedException("User with id '" + userId + "' is not authorized to cancel participation request with" +
-                    "id '" + participationRequest.getId() + "'.");
+            throw new NotAuthorizedException("Пользователь с id '" + userId + "' не уполномочен отменять запрос на участие с" +
+                    " id '" + participationRequest.getId() + "'.");
         }
     }
 
     private ParticipationRequest getParticipationRequest(Long requestId) {
         return participationRequestRepository.findById(requestId)
-                .orElseThrow(() -> new NotFoundException("Participation request with id '" + requestId + "' was not found."));
+                .orElseThrow(() -> new NotFoundException("Запрос на участие с id '" + requestId + "' не найден."));
     }
 
     private User getUser(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id '" + userId + "' not found."));
+                .orElseThrow(() -> new NotFoundException("Пользователь с id '" + userId + "' не найден."));
     }
 
     private Event createNewEvent(NewEvent newEvent, Category category, User initiator, Location eventLocation) {
@@ -360,23 +360,23 @@ public class UserServiceImpl implements UserService {
 
     private Location saveLocation(NewEvent newEvent) {
         final Location eventLocation = locationRepository.save(newEvent.getLocation());
-        log.info("UserService, location '{}' was saved.", eventLocation);
+        log.info("Служба пользователей, местоположение '{}' было сохранено.", eventLocation);
         return eventLocation;
     }
 
     private Category getCategory(NewEvent newEvent) {
         return categoryRepository.findById(newEvent.getCategoryId())
-                .orElseThrow(() -> new NotFoundException("Category with id '" + newEvent.getCategoryId() + "' not found."));
+                .orElseThrow(() -> new NotFoundException("Категория с id '" + newEvent.getCategoryId() + "' не найдена."));
     }
 
     private Event getEvent(Long eventId) {
         return eventRepository.findFullEventById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id '" + eventId + "' not found."));
+                .orElseThrow(() -> new NotFoundException("Событие с id '" + eventId + "' не найдено."));
     }
 
     private void checkEventIsPublished(Event event) {
         if (event.getState().equals(EventState.PUBLISHED)) {
-            throw new EventNotModifiableException("Published event with id '" + event.getId() + "' can not be modified.");
+            throw new EventNotModifiableException("Опубликованное событие с id '" + event.getId() + "' не может быть изменено.");
         }
     }
 
@@ -398,22 +398,22 @@ public class UserServiceImpl implements UserService {
         Optional<ParticipationRequest> participationRequest = participationRequestRepository
                 .findByRequesterIdAndEventId(userId, eventId);
         if (participationRequest.isPresent()) {
-            throw new RequestAlreadyExistsException("Participation request by user with id '" + userId + "' to event " +
-                    "with id '" + eventId + "' already exists.");
+            throw new RequestAlreadyExistsException("Запрос на участие от пользователя с id '" + userId + "' для события " +
+                    "с id '" + eventId + "' уже существует.");
         }
     }
 
     private void checkIfUserCanMakeRequest(Long userId, Long eventId, Event event) {
         if (event.getInitiator().getId().equals(userId)) {
-            throw new NotAuthorizedException("Initiator with id '" + userId + "' can not make participation request " +
-                    "to his own event with id '" + eventId + "'.");
+            throw new NotAuthorizedException("Инициатор с id '" + userId + "' не может сделать запрос на участие " +
+                    "в своем собственном событии с id '" + eventId + "'.");
         }
     }
 
     private void checkIfEventIsPublished(Event event, Long userId) {
         if (!event.getState().equals(EventState.PUBLISHED)) {
-            throw new NotAuthorizedException("User with id '" + userId + "'can not make request to not published event " +
-                    "with id '" + event.getId() + "'.");
+            throw new NotAuthorizedException("Пользователь с id '" + userId + "' не может сделать запрос на участие в неопубликованном событии " +
+                    "с id '" + event.getId() + "'.");
         }
     }
 
@@ -423,7 +423,7 @@ public class UserServiceImpl implements UserService {
                 .event(event)
                 .build();
         if (event.getNumberOfParticipants() == event.getParticipantLimit() && event.getParticipantLimit() != 0) {
-            throw new NotAuthorizedException("Participant limit is exceeded for event with id '" + event.getId() + "'.");
+            throw new NotAuthorizedException("Лимит участников превышен для события с id '" + event.getId() + "'.");
         } else if (event.getParticipantLimit() == 0 || !event.isRequestModeration()) {
             participationRequest.setStatus(CONFIRMED);
             addConfirmedRequestToEvent(event);
