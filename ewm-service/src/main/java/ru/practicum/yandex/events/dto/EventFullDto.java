@@ -55,5 +55,5 @@ public class EventFullDto {
 
     private LocationDto location;
 
-    List<CommentDto> comments;
+    private List<CommentDto> comments;
 }
