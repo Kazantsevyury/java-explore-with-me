@@ -24,6 +24,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -89,6 +90,11 @@ public class Event {
 
     private long views;
 
+    @OneToMany
+    @JoinColumn(name = "event_id")
+    @ToString.Exclude
+    private final List<Comment> comments = new ArrayList<>();
+
     @ManyToMany
     @JoinTable(
             name = "event_compilation",
@@ -104,5 +110,9 @@ public class Event {
 
     public void addToCompilation(Compilation compilation) {
         compilations.add(compilation);
+    }
+
+    public void addCommentToEvent(Comment comment) {
+        comments.add(comment);
     }
 }

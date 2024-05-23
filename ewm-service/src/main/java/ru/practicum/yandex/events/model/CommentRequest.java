@@ -1,4 +1,4 @@
-package ru.practicum.yandex.events.dto;
+package ru.practicum.yandex.events.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,9 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class LocationDto {
+public class CommentRequest {
 
-    private Float lat;
-
-    private Float lon;
+    private String text;
 }

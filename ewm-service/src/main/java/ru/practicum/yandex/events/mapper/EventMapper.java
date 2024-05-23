@@ -20,7 +20,7 @@ import java.util.List;
 
 import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 
-@Mapper(componentModel = "spring", uses = {LocationMapper.class, UserMapper.class, CategoryMapper.class})
+@Mapper(componentModel = "spring", uses = {LocationMapper.class, UserMapper.class, CategoryMapper.class, CommentMapper.class})
 public interface EventMapper {
 
     NewEvent toModel(NewEventDto newEventDto);

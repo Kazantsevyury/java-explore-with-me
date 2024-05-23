@@ -21,32 +21,32 @@ import java.time.LocalDateTime;
 @Builder
 public class NewEventDto {
 
-    @NotBlank(message = "Annotation must not be blank or empty and contain between 20 and 2000 characters.")
-    @Size(min = 20, max = 2000, message = "Annotation must not be blank or empty and contain between 20 and 2000 characters.")
+    @NotBlank(message = "Аннотация не должна быть пустой и содержать от 20 до 2000 символов.")
+    @Size(min = 20, max = 2000, message = "Аннотация не должна быть пустой и содержать от 20 до 2000 символов.")
     private String annotation;
 
-    @NotNull(message = "Event must have category.")
+    @NotNull(message = "Событие должно иметь категорию.")
     @JsonAlias("category")
     private Long categoryId;
 
-    @NotBlank(message = "Description must not be blank or empty and contain between 20 and 7000 characters.")
-    @Size(min = 20, max = 7000, message = "Description must not be blank or empty and contain between 20 and 7000 characters.")
+    @NotBlank(message = "Описание не должно быть пустым и содержать от 20 до 7000 символов.")
+    @Size(min = 20, max = 7000, message = "Описание не должно быть пустым и содержать от 20 до 7000 символов.")
     private String description;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @ValidEventStart(message = "Date of event must be at least 2 hours later than current time.")
+    @ValidEventStart(message = "Дата события должна быть не менее чем через 2 часа от текущего времени.")
     private LocalDateTime eventDate;
 
-    @NotBlank(message = "Title must not be blank or empty and contain between 3 and 120 characters.")
-    @Size(min = 3, max = 120, message = "Title must not be blank or empty and contain between 3 and 120 characters.")
+    @NotBlank(message = "Название не должно быть пустым и содержать от 3 до 120 символов.")
+    @Size(min = 3, max = 120, message = "Название не должно быть пустым и содержать от 3 до 120 символов.")
     private String title;
 
-    @NotNull(message = "Location must be specified.")
+    @NotNull(message = "Местоположение должно быть указано.")
     private LocationDto location;
 
     private boolean paid;
 
-    @PositiveOrZero(message = "Number of participants must be positive or zero.")
+    @PositiveOrZero(message = "Количество участников должно быть положительным или нулевым.")
     private int participantLimit;
 
     private boolean requestModeration = true;

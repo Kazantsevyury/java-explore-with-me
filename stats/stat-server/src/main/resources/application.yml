@@ -1,5 +1,6 @@
 server:
   port: 9090
+
 spring:
   jpa:
     hibernate:
@@ -8,11 +9,13 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQL10Dialect
         format_sql: true
+
   sql:
     init:
       mode: always
+
   datasource:
     driverClassName: org.postgresql.Driver
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://stats-db:5432/statsdb}
-    username: ${POSTGRES_USER:stats_user}
-    password: ${POSTGRES_PASSWORD:stats_pass}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/stats}
+    username: ${POSTGRES_USER:root}
+    password: ${POSTGRES_PASSWORD:root}

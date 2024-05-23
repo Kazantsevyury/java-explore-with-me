@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.yandex.compilation.dto.NewCompilationDto;
 import ru.practicum.yandex.compilation.dto.UpdateCompilationRequest;
 import ru.practicum.yandex.compilation.model.Compilation;
@@ -23,10 +24,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class CompilationServiceImpl implements CompilationService {
+
     private final CompilationRepository compilationRepository;
     private final EventRepository eventRepository;
 
+    /**
+     * Добавление новой подборки событий. Подборка может не содержать событий.
+     *
+     * @param newCompilationDto параметры новой подборки
+     * @return добавленная подборка
+     */
     @Override
+    @Transactional
     public Compilation addCompilation(NewCompilationDto newCompilationDto) {
         List<Long> compilationEventIds = newCompilationDto.getEvents();
         List<Event> compilationEvents = getCompilationEvents(newCompilationDto, compilationEventIds);
@@ -36,41 +45,69 @@ public class CompilationServiceImpl implements CompilationService {
                 .events(compilationEvents)
                 .build();
         Compilation savedCompilation = compilationRepository.save(compilation);
-        log.info("Подборка с id '{}' сохранена.", savedCompilation.getId());
+        log.info("Сохранена подборка с id '{}'.", savedCompilation.getId());
         return savedCompilation;
     }
 
+    /**
+     * Обновление параметров подборки событий.
+     *
+     * @param compId         идентификатор подборки для обновления
+     * @param updateRequest  параметры обновления
+     * @return обновленная подборка
+     */
     @Override
+    @Transactional
     public Compilation updateCompilation(Long compId, UpdateCompilationRequest updateRequest) {
         Compilation compilation = getCompilationWithEvents(compId);
         updateCompilationIfNeeded(updateRequest, compilation);
         Compilation savedCompilation = compilationRepository.save(compilation);
-        log.info("Подборка с id '{}' обновлена.", compId);
+        log.info("Обновлена подборка с id '{}'.", compId);
         return savedCompilation;
     }
 
+    /**
+     * Удаление подборки по идентификатору подборки. Если удалено успешно, возвращает статус ответа 204.
+     *
+     * @param compId идентификатор подборки для удаления
+     */
     @Override
+    @Transactional
     public void deleteCompilation(Long compId) {
         getCompilation(compId);
         compilationRepository.deleteById(compId);
         log.info("Подборка с id '{}' удалена.", compId);
     }
 
+    /**
+     * Поиск подборок событий. Если ничего не найдено в соответствии с фильтром поиска, возвращает пустой список.
+     *
+     * @param pinned поиск только закрепленных подборок событий
+     * @param from   первая подборка событий для отображения (необязательно, значение по умолчанию 0)
+     * @param size   количество подборок событий для отображения (необязательно, значение по умолчанию 10)
+     * @return списки подборок событий
+     */
     @Override
     public List<Compilation> findCompilations(Boolean pinned, Long from, Integer size) {
         List<Specification<Compilation>> specifications = searchFilterToSpecificationList(pinned);
         OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
         List<Compilation> compilations = compilationRepository
                 .findAll(specifications.stream().reduce(Specification::and).orElse(null), pageRequest).getContent();
-        log.info("Запрос подборок, фильтр поиска: закреплено - '{}', начиная с - '{}', размер - '{}'. Количество подборок - '{}'.",
+        log.info("Запрос подборок с параметрами: pinned - '{}', from - '{}', size - '{}'. Размер списка - '{}'.",
                 pinned, from, size, compilations.size());
         return compilations;
     }
 
+    /**
+     * Поиск подборки событий по идентификатору. Если ничего не найдено, возвращает NotFoundException.
+     *
+     * @param compId идентификатор подборки событий
+     * @return найденная подборка
+     */
     @Override
     public Compilation findCompilationById(Long compId) {
         Compilation compilation = getCompilationWithEvents(compId);
-        log.info("Запрошена подборка с id '{}'.", compId);
+        log.info("Запрос подборки с id '{}'.", compId);
         return compilation;
     }
 
@@ -78,7 +115,6 @@ public class CompilationServiceImpl implements CompilationService {
         List<Specification<Compilation>> resultSpecification = new ArrayList<>();
         resultSpecification.add(pinned == null ? null : isPinned(pinned));
         return resultSpecification.stream().filter(Objects::nonNull).collect(Collectors.toList());
-
     }
 
     private Specification<Compilation> isPinned(Boolean pinned) {

@@ -22,32 +22,57 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Public (for all users) API for events
+ */
 @RestController
 @RequestMapping("/events")
 @RequiredArgsConstructor
 @Slf4j
-public class EventController {
+public class EventPublicController {
+
     private static final String SERVICE_ID = "ewm-main-service";
+
     private final EventService eventService;
+
     private final EventMapper eventMapper;
+
     private final StatClient statClient;
 
+    /**
+     * Find event according to search filter. Only published events will be displayed. Information about this endpoint
+     * is saved to stats server.
+     *
+     * @param searchFilter search filter
+     * @param from         first element to display
+     * @param size         number of elements to display
+     * @param request      HttpServletRequest for request details
+     * @return list of events
+     */
     @GetMapping
     public List<EventShortDto> findEvents(EventSearchFilter searchFilter,
                                           @RequestParam(defaultValue = "0") Long from,
                                           @RequestParam(defaultValue = "10") Integer size,
                                           HttpServletRequest request) {
-        log.info("Запрос мероприятий, фильтр поиска: '{}'.", searchFilter);
+        log.info("Requesting events, search filter: '{}'.", searchFilter);
         validateDateRange(searchFilter);
         List<Event> events = eventService.findEvents(searchFilter, from, size);
         sendStatistics(request);
         return eventMapper.toShortDtoList(events);
     }
 
+    /**
+     * Get full event info by event id. Number of endpoint hits is requested from stats server and used for number of
+     * events views.
+     *
+     * @param id      event id
+     * @param request HttpServletRequest for request details. Information about this endpoint is saved to stats server.
+     * @return found event
+     */
     @GetMapping("/{id}")
     public EventFullDto getFullEventInfoById(@PathVariable Long id,
                                              HttpServletRequest request) {
-        log.info("Запрос полной информации о мероприятии с идентификатором '{}'.", id);
+        log.info("Requesting full event info with id '{}'.", id);
         sendStatistics(request);
         ViewStatsDto statistic = getStatisticsWithUniqueIp(request);
         Long hits = statistic.getHits();
@@ -72,7 +97,7 @@ public class EventController {
     private void validateDateRange(EventSearchFilter searchFilter) {
         if (searchFilter.getRangeStart() != null && searchFilter.getRangeEnd() != null) {
             if (searchFilter.getRangeStart().isAfter(searchFilter.getRangeEnd())) {
-                throw new IncorrectDateRangeException("Неверный диапазон дат.");
+                throw new IncorrectDateRangeException("Wrong date range.");
             }
         }
     }

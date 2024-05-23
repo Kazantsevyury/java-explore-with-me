@@ -15,12 +15,12 @@ import javax.validation.constraints.Size;
 @Builder
 public class NewUserRequest {
 
-    @NotBlank(message = "Name length must be between 2 and 250 characters.")
-    @Size(min = 2, max = 250, message = "Name length must be between 2 and 250 characters.")
+    @NotBlank(message = "Длина имени должна быть от 2 до 250 символов.")
+    @Size(min = 2, max = 250, message = "Длина имени должна быть от 2 до 250 символов.")
     private String name;
 
-    @Email(message = "Wrong email format.")
-    @Size(min = 6, max = 254, message = "Wrong email format.")
-    @NotBlank(message = "Wrong email format.")
+    @Email(message = "Неверный формат электронной почты.")
+    @Size(min = 6, max = 254, message = "Неверный формат электронной почты.")
+    @NotBlank(message = "Неверный формат электронной почты.")
     private String email;
 }

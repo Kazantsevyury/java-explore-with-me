@@ -33,7 +33,7 @@ import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 /**
- * Private (for registered users) API for events and participation requests.
+ * Приватный (для зарегистрированных пользователей) API для событий и запросов на участие.
  */
 @RestController
 @RequestMapping("/users")
@@ -41,87 +41,90 @@ import java.util.List;
 @Validated
 @Slf4j
 public class UserPrivateController {
+
     private final UserService userService;
+
     private final EventMapper eventMapper;
+
     private final ParticipationMapper participationMapper;
 
     /**
-     * Add new event. Event date must be at least 2 hours after current time. If event added successfully, returns 201
-     * response status.
+     * Добавить новое событие. Дата события должна быть не менее чем через 2 часа от текущего времени.
+     * Если событие добавлено успешно, возвращает статус 201.
      *
-     * @param userId      event initiator id
-     * @param newEventDto event parameters
-     * @return added event
+     * @param userId      идентификатор инициатора события
+     * @param newEventDto параметры события
+     * @return добавленное событие
      */
     @PostMapping("/{userId}/events")
     @ResponseStatus(HttpStatus.CREATED)
     public EventFullDto addEvent(@PathVariable Long userId, @RequestBody @Valid NewEventDto newEventDto) {
-        log.info("User with id '{}' adding new event '{}'.", userId, newEventDto.getTitle());
+        log.info("Пользователь с id '{}' добавляет новое событие '{}'.", userId, newEventDto.getTitle());
         final NewEvent newEvent = eventMapper.toModel(newEventDto);
         final Event addedEvent = userService.addEventByUser(userId, newEvent);
         return eventMapper.toDto(addedEvent);
     }
 
     /**
-     * Find events added by user. If nothing found according to search filter, returns empty list.
+     * Найти события, добавленные пользователем. Если по фильтру поиска ничего не найдено, возвращает пустой список.
      *
-     * @param userId requester id
-     * @param from   first element to display
-     * @param size   number of elements to display
-     * @return list of events
+     * @param userId идентификатор запрашивающего пользователя
+     * @param from   первый элемент для отображения
+     * @param size   количество элементов для отображения
+     * @return список событий
      */
     @GetMapping("/{userId}/events")
     public List<EventShortDto> findEventsFromUser(@PathVariable Long userId,
                                                   @RequestParam(defaultValue = "0") @PositiveOrZero Long from,
                                                   @RequestParam(defaultValue = "10") @Positive Integer size) {
-        log.info("Finding events from user with id '{}'.", userId);
+        log.info("Поиск событий от пользователя с id '{}'.", userId);
         final List<Event> events = userService.findEventsFromUser(userId, from, size);
         return eventMapper.toShortDtoList(events);
     }
 
     /**
-     * Get full event info requested by event initiator. If nothing was found, returns 404 response status.
+     * Получить полную информацию о событии, запрошенном инициатором. Если ничего не найдено, возвращает статус 404.
      *
-     * @param userId  requester id
-     * @param eventId event id to find
-     * @return found event
+     * @param userId  идентификатор запрашивающего пользователя
+     * @param eventId идентификатор события
+     * @return найденное событие
      */
     @GetMapping("/{userId}/events/{eventId}")
     public EventFullDto getFullEventByInitiator(@PathVariable Long userId, @PathVariable Long eventId) {
-        log.info("Requesting full event with id '{}' by user with id '{}.", eventId, userId);
+        log.info("Запрос полной информации о событии с id '{}' пользователем с id '{}'.", eventId, userId);
         final Event event = userService.getFullEventByInitiator(userId, eventId);
         return eventMapper.toDto(event);
     }
 
     /**
-     * Update event information. If event is published, it can not be modified (otherwise returns 409 response status).
-     * Event date must be at least 2 hours after current time.
+     * Обновить информацию о событии. Если событие опубликовано, его нельзя изменить (иначе возвращает статус 409).
+     * Дата события должна быть не менее чем через 2 часа от текущего времени.
      *
-     * @param userId      requester id
-     * @param eventId     event id to be modified
-     * @param updateEvent event parameters to update
-     * @return updated event
+     * @param userId      идентификатор запрашивающего пользователя
+     * @param eventId     идентификатор события для изменения
+     * @param updateEvent параметры для обновления события
+     * @return обновленное событие
      */
     @PatchMapping("/{userId}/events/{eventId}")
     public EventFullDto updateEvent(@PathVariable Long userId,
                                     @PathVariable Long eventId,
                                     @RequestBody @Valid EventUpdateRequest updateEvent) {
-        log.info("Updating event with id '{}', by user with id '{}'.", eventId, userId);
+        log.info("Обновление события с id '{}', пользователем с id '{}'.", eventId, userId);
         final Event updatedEvent = userService.updateEvent(userId, eventId, updateEvent);
         return eventMapper.toDto(updatedEvent);
     }
 
     /**
-     * Find information about participation requests in event by event initiator. If nothing found, returns empty list.
+     * Найти информацию о запросах на участие в событии инициатором события. Если ничего не найдено, возвращает пустой список.
      *
-     * @param userId  requester id
-     * @param eventId event id
-     * @return participation requests in event
+     * @param userId  идентификатор запрашивающего пользователя
+     * @param eventId идентификатор события
+     * @return запросы на участие в событии
      */
     @GetMapping("/{userId}/events/{eventId}/requests")
     public List<ParticipationRequestDto> findParticipationRequestsForUsersEvent(@PathVariable Long userId,
                                                                                 @PathVariable Long eventId) {
-        log.info("Getting participation requests in event with id '{}' initiated by user with id '{}'.",
+        log.info("Получение запросов на участие в событии с id '{}', инициированном пользователем с id '{}'.",
                 eventId, userId);
         final List<ParticipationRequest> participationRequests = userService
                 .findParticipationRequestsForUsersEvent(userId, eventId);
@@ -129,63 +132,63 @@ public class UserPrivateController {
     }
 
     /**
-     * Modify participation request status for an event. If participation limit is reached, returns 409 response status.
-     * If participation requests status is anything but PENDING, returns 409 response status.
+     * Изменить статус запроса на участие в событии. Если лимит участников достигнут, возвращает статус 409.
+     * Если статус запроса на участие не PENDING, возвращает статус 409.
      *
-     * @param userId       requester id
-     * @param eventId      event id
-     * @param statusUpdate request parameters to update
-     * @return result of participation requests status change
+     * @param userId       идентификатор запрашивающего пользователя
+     * @param eventId      идентификатор события
+     * @param statusUpdate параметры для обновления статуса запроса
+     * @return результат изменения статуса запроса на участие
      */
     @PatchMapping("/{userId}/events/{eventId}/requests")
     public EventRequestStatusUpdateDto changeParticipationRequestStatusForUsersEvent(
             @PathVariable Long userId,
             @PathVariable Long eventId,
             @RequestBody EventRequestStatusUpdateRequest statusUpdate) {
-        log.info("Changing participation requests status for event with id '{}' by user with id '{}'.", eventId, userId);
+        log.info("Изменение статуса запроса на участие в событии с id '{}' пользователем с id '{}'.", eventId, userId);
         return userService.changeParticipationRequestStatusForUsersEvent(userId, eventId, statusUpdate);
     }
 
     /**
-     * Add participation request in event. If participation request saved successfully, returns 201 response status.
+     * Добавить запрос на участие в событии. Если запрос на участие сохранен успешно, возвращает статус 201.
      *
-     * @param userId  requester id
-     * @param eventId event id to participate in
-     * @return saved participation request
+     * @param userId  идентификатор запрашивающего пользователя
+     * @param eventId идентификатор события для участия
+     * @return сохраненный запрос на участие
      */
     @PostMapping("/{userId}/requests")
     @ResponseStatus(HttpStatus.CREATED)
     public ParticipationRequestDto addParticipationRequestToEvent(@PathVariable Long userId,
                                                                   @RequestParam Long eventId) {
-        log.info("User with id '{}' requesting participation in event with id '{}'.", userId, eventId);
+        log.info("Пользователь с id '{}' запрашивает участие в событии с id '{}'.", userId, eventId);
         final ParticipationRequest participationRequest = userService.addParticipationRequestToEvent(userId, eventId);
         return participationMapper.toDto(participationRequest);
     }
 
     /**
-     * Find user's participation requests. If nothing found, returns empty list.
+     * Найти запросы на участие пользователя. Если ничего не найдено, возвращает пустой список.
      *
-     * @param userId user id
-     * @return participation requests
+     * @param userId идентификатор пользователя
+     * @return запросы на участие
      */
     @GetMapping("/{userId}/requests")
     public List<ParticipationRequestDto> findParticipationRequestsByUser(@PathVariable Long userId) {
-        log.info("User with id '{}' requesting participation request list.", userId);
+        log.info("Пользователь с id '{}' запрашивает список запросов на участие.", userId);
         final List<ParticipationRequest> participationRequests = userService.findParticipationRequestsByUser(userId);
         return participationMapper.toDtoList(participationRequests);
     }
 
     /**
-     * Cancel user's participation requests. Only author of request can cancel it.
+     * Отменить запрос на участие пользователя. Только автор запроса может его отменить.
      *
-     * @param userId    requester id
-     * @param requestId request id to cancel
-     * @return canceled request
+     * @param userId    идентификатор запрашивающего пользователя
+     * @param requestId идентификатор запроса для отмены
+     * @return отмененный запрос
      */
     @PatchMapping("/{userId}/requests/{requestId}/cancel")
     public ParticipationRequestDto cancelOwnParticipationRequest(@PathVariable Long userId,
                                                                  @PathVariable Long requestId) {
-        log.info("User with id '{}' canceling request with id '{}'.", userId, requestId);
+        log.info("Пользователь с id '{}' отменяет запрос с id '{}'.", userId, requestId);
         final ParticipationRequest canceledRequest = userService.cancelOwnParticipationRequest(userId, requestId);
         return participationMapper.toDto(canceledRequest);
     }
